@@ -1,6 +1,6 @@
 # 관리화면(admin-dashboard) 내부 Job Flow — AS-IS
 
-관리화면은 `packages/admin/dashboard` React SPA다. 데이터는 React Query로 가져오고, 화면은 react-router의 라우트 모달로 연다. 이 문서는 주문 영역 화면들이 공통으로 쓰는 내부 협력 구조를 모듈 깊이에서 그린다. 화면별 이동과 장면은 [navigation.md](../../navigation.md)를 따른다.
+관리화면은 `packages/admin/dashboard` React SPA다. 데이터는 React Query로 가져오고, 화면은 react-router의 라우트 모달로 연다. 이 문서는 주문 영역 화면들이 공통으로 쓰는 내부 협력 구조를 모듈 깊이에서 그린다. 화면별 이동과 장면은 [navigation-admin.md](../../navigation-admin.md)를 따른다.
 
 | 그림 이름 | 구현 | 책임 |
 | --- | --- | --- |

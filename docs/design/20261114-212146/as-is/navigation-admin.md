@@ -1,4 +1,4 @@
-# 주문 관리(Admin) Navigation — AS-IS
+# 주문 관리 Navigation — 관리자(Admin) 대시보드 AS-IS
 
 ## 범위·확인 기준
 

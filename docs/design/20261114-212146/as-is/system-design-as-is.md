@@ -20,7 +20,7 @@
 
 | 문서 | 내용 |
 | --- | --- |
-| [navigation.md](navigation.md) | 시나리오 25개(N01~N25)의 화면 이동과 판단 |
+| [navigation-admin.md](navigation-admin.md) | 시나리오 25개(N01~N25)의 화면 이동과 판단 |
 | [screen-layout.md](screen-layout.md) | 전체 페이지·장면 목록과 17개 페이지의 배치 |
 | [details/screens/](details/screens/) | 페이지별 HTML 17개와 공통 `assets/` |
 | [details/job-flow/macro.md](details/job-flow/macro.md) | 시스템과 외부(운영자, 고객, 결제대행사, 이행대행사, 파일저장소)의 협력 M1~M9 |
@@ -96,31 +96,31 @@ flowchart LR
 
 | # | 기능 | 실제 진입점 | 주 API | Navigation |
 | --- | --- | --- | --- | --- |
-| F01 | 주문 목록 조회·검색·필터·정렬 | 사이드바 Orders, `/orders` | `GET /admin/orders` | [N01](navigation.md#n01) |
-| F02 | 주문 CSV 내보내기 | 목록 Export | `POST /admin/orders/export` | [N02](navigation.md#n02) |
-| F03 | 주문 상세 조회 | 목록 행, 검색, 고객 상세 | `GET /admin/orders/:id`, `/preview` | [N03](navigation.md#n03) |
-| F04 | 주문 취소 | General ⋯ Cancel | `POST /admin/orders/:id/cancel` | [N04](navigation.md#n04) |
-| F05 | 출고 생성 | Unfulfilled ⋯ Fulfill items | `POST /admin/orders/:id/fulfillments` | [N05](navigation.md#n05) |
-| F06 | 재고 할당 | Summary Allocate items | `POST /admin/reservations` | [N06](navigation.md#n06) |
-| F07 | 배송 처리 | Fulfillment Mark as shipped | `POST .../fulfillments/:fid/shipments` | [N07](navigation.md#n07) |
-| F08 | 배달·픽업 완료 | Fulfillment Mark as delivered | `POST .../fulfillments/:fid/mark-as-delivered` | [N08](navigation.md#n08) |
-| F09 | 출고 취소 | Fulfillment ⋯ Cancel | `POST .../fulfillments/:fid/cancel` | [N09](navigation.md#n09) |
-| F10 | 결제 매입 | Payments Capture payment | `POST /admin/payments/:id/capture` | [N10](navigation.md#n10) |
-| F11 | 결제 승인 확인 | 승인 대기 배너 Check status | `POST /admin/orders/:id/payment-sessions/authorize` | [N11](navigation.md#n11) |
-| F12 | 결제 링크 복사·결제 완료 표시 | Summary 액션바 | (복사는 API 없음), `POST /admin/payment-collections/:id/mark-as-paid` | [N12](navigation.md#n12) |
-| F13 | 환불 / 잔액 정산(로열티) | 결제 행 Refund, Summary Refund $ | `POST /admin/payments/:id/refund`, `POST /admin/orders/:id/credit-lines` | [N13](navigation.md#n13) |
-| F14 | 반품 요청 | Summary ⋯ Create Return | `/admin/returns/**` | [N14](navigation.md#n14) |
-| F15 | 반품 수령 | Summary Receive items | `/admin/returns/:id/receive**`, `/dismiss-items` | [N15](navigation.md#n15) |
-| F16 | 요청 반품·클레임·교환 취소 | Activity Cancel | `POST /admin/returns/:id/cancel` 등 | [N16](navigation.md#n16) |
-| F17 | 클레임 | Summary ⋯ Create/Manage Claim | `/admin/claims/**` | [N17](navigation.md#n17) |
-| F18 | 교환 | Summary ⋯ Create/Manage Exchange | `/admin/exchanges/**` | [N18](navigation.md#n18) |
-| F19 | 주문 편집 요청·확정·취소 | Summary ⋯ Edit order, 편집 배너 | `/admin/order-edits/**`, `POST /admin/order-changes/:id` | [N19](navigation.md#n19) |
-| F20 | 소유권 이전·요청 취소 | Customer ⋯ Transfer ownership, Activity Cancel | `POST /admin/orders/:id/transfer[/guest|/cancel]` | [N20](navigation.md#n20) |
-| F21 | 이메일 수정 | Customer ⋯ Email | `POST /admin/orders/:id` | [N21](navigation.md#n21) |
-| F22 | 배송지·청구지 수정 | Customer ⋯ Shipping/Billing address | `POST /admin/orders/:id` | [N22](navigation.md#n22) |
-| F23 | 메타데이터 수정 | Metadata 카드 | `POST /admin/orders/:id` | [N23](navigation.md#n23) |
-| F24 | 주문 JSON 보기 | JSON 카드 | 없음 | [N24](navigation.md#n24) |
-| F25 | 직접 URL 진입·권한 거부 | 북마크, 새로고침 | 라우트 가드 | [N25](navigation.md#n25) |
+| F01 | 주문 목록 조회·검색·필터·정렬 | 사이드바 Orders, `/orders` | `GET /admin/orders` | [N01](navigation-admin.md#n01) |
+| F02 | 주문 CSV 내보내기 | 목록 Export | `POST /admin/orders/export` | [N02](navigation-admin.md#n02) |
+| F03 | 주문 상세 조회 | 목록 행, 검색, 고객 상세 | `GET /admin/orders/:id`, `/preview` | [N03](navigation-admin.md#n03) |
+| F04 | 주문 취소 | General ⋯ Cancel | `POST /admin/orders/:id/cancel` | [N04](navigation-admin.md#n04) |
+| F05 | 출고 생성 | Unfulfilled ⋯ Fulfill items | `POST /admin/orders/:id/fulfillments` | [N05](navigation-admin.md#n05) |
+| F06 | 재고 할당 | Summary Allocate items | `POST /admin/reservations` | [N06](navigation-admin.md#n06) |
+| F07 | 배송 처리 | Fulfillment Mark as shipped | `POST .../fulfillments/:fid/shipments` | [N07](navigation-admin.md#n07) |
+| F08 | 배달·픽업 완료 | Fulfillment Mark as delivered | `POST .../fulfillments/:fid/mark-as-delivered` | [N08](navigation-admin.md#n08) |
+| F09 | 출고 취소 | Fulfillment ⋯ Cancel | `POST .../fulfillments/:fid/cancel` | [N09](navigation-admin.md#n09) |
+| F10 | 결제 매입 | Payments Capture payment | `POST /admin/payments/:id/capture` | [N10](navigation-admin.md#n10) |
+| F11 | 결제 승인 확인 | 승인 대기 배너 Check status | `POST /admin/orders/:id/payment-sessions/authorize` | [N11](navigation-admin.md#n11) |
+| F12 | 결제 링크 복사·결제 완료 표시 | Summary 액션바 | (복사는 API 없음), `POST /admin/payment-collections/:id/mark-as-paid` | [N12](navigation-admin.md#n12) |
+| F13 | 환불 / 잔액 정산(로열티) | 결제 행 Refund, Summary Refund $ | `POST /admin/payments/:id/refund`, `POST /admin/orders/:id/credit-lines` | [N13](navigation-admin.md#n13) |
+| F14 | 반품 요청 | Summary ⋯ Create Return | `/admin/returns/**` | [N14](navigation-admin.md#n14) |
+| F15 | 반품 수령 | Summary Receive items | `/admin/returns/:id/receive**`, `/dismiss-items` | [N15](navigation-admin.md#n15) |
+| F16 | 요청 반품·클레임·교환 취소 | Activity Cancel | `POST /admin/returns/:id/cancel` 등 | [N16](navigation-admin.md#n16) |
+| F17 | 클레임 | Summary ⋯ Create/Manage Claim | `/admin/claims/**` | [N17](navigation-admin.md#n17) |
+| F18 | 교환 | Summary ⋯ Create/Manage Exchange | `/admin/exchanges/**` | [N18](navigation-admin.md#n18) |
+| F19 | 주문 편집 요청·확정·취소 | Summary ⋯ Edit order, 편집 배너 | `/admin/order-edits/**`, `POST /admin/order-changes/:id` | [N19](navigation-admin.md#n19) |
+| F20 | 소유권 이전·요청 취소 | Customer ⋯ Transfer ownership, Activity Cancel | `POST /admin/orders/:id/transfer[/guest|/cancel]` | [N20](navigation-admin.md#n20) |
+| F21 | 이메일 수정 | Customer ⋯ Email | `POST /admin/orders/:id` | [N21](navigation-admin.md#n21) |
+| F22 | 배송지·청구지 수정 | Customer ⋯ Shipping/Billing address | `POST /admin/orders/:id` | [N22](navigation-admin.md#n22) |
+| F23 | 메타데이터 수정 | Metadata 카드 | `POST /admin/orders/:id` | [N23](navigation-admin.md#n23) |
+| F24 | 주문 JSON 보기 | JSON 카드 | 없음 | [N24](navigation-admin.md#n24) |
+| F25 | 직접 URL 진입·권한 거부 | 북마크, 새로고침 | 라우트 가드 | [N25](navigation-admin.md#n25) |
 
 백엔드에는 있지만 관리자 주문 화면에서 쓰지 않는 기능도 있다. `POST /admin/orders/:id/archive`, `POST /admin/orders/:id/complete`, `DELETE /admin/payment-collections/:id`, `/admin/fulfillments/**`(주문과 무관한 일반 이행), 클레임의 `claim-items` 라우트가 여기에 해당한다. 코드에서 이 API를 호출하는 화면을 찾지 못했다.
 

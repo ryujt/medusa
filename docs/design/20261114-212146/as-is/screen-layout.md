@@ -1,6 +1,6 @@
 # 주문 관리(Admin) 화면 배치 — AS-IS
 
-이 문서는 화면 배치와 장면의 원본이다. 화면 이동 흐름은 [navigation.md](navigation.md), 조사 근거와 미확인 사항은 [system-design-as-is.md](system-design-as-is.md#7-조사-근거검증미확인)에 있다.
+이 문서는 화면 배치와 장면의 원본이다. 화면 이동 흐름은 [navigation-admin.md](navigation-admin.md), 조사 근거와 미확인 사항은 [system-design-as-is.md](system-design-as-is.md#7-조사-근거검증미확인)에 있다.
 
 - 각 HTML은 `details/screens/`에 있다. HTML 상단의 노란 "검토용 장면 선택" 바는 제품 UI가 아니다.
 - 장면 링크는 `파일.html#장면id` 형식이다.
@@ -10,23 +10,23 @@
 
 | 화면 ID | 페이지 이름·Navigation 표기 | 실제 경로·진입점·접근 조건 | 관련 시나리오 | Layout 절·HTML | 근거·확인 상태 |
 | --- | --- | --- | --- | --- | --- |
-| order-list | 주문 목록 · `OrderList` | `/orders` · 사이드바 Orders, 홈 리다이렉트, 브레드크럼 · `order:read` | [N01](navigation.md#n01), [N02](navigation.md#n02) | [절](#order-list) · [HTML](details/screens/order-list.html) | 코드 확인 · `routes/orders/order-list` |
-| order-export | 주문 내보내기 · `OrderExport` | `/orders/export` (목록 위 드로어) · 목록 Export · `order:read` | [N02](navigation.md#n02) | [절](#order-export) · [HTML](details/screens/order-export.html) | 코드 확인 · `routes/orders/order-export` |
-| order-detail | 주문 상세 · `OrderDetail` | `/orders/:id` · 목록 행, 검색, 고객 상세, 하위 화면 복귀 · `order:read`(로더 권한 검사) | N01, [N03](navigation.md#n03)~N25 | [절](#order-detail) · [HTML](details/screens/order-detail.html) | 코드 확인 · `routes/orders/order-detail` |
-| order-create-fulfillment | 출고 생성 · `OrderCreateFulfillment` | `/orders/:id/fulfillment?requires_shipping=` · Unfulfilled ⋯ Fulfill items · `order:update`+`fulfillment:create` | [N05](navigation.md#n05), N25 | [절](#order-create-fulfillment) · [HTML](details/screens/order-create-fulfillment.html) | 코드 확인 |
-| order-allocate-items | 재고 할당 · `OrderAllocateItems` | `/orders/:id/allocate-items` · Summary Allocate items · `reservation_item:create` | [N06](navigation.md#n06) | [절](#order-allocate-items) · [HTML](details/screens/order-allocate-items.html) | 코드 확인 |
-| order-create-shipment | 배송 처리 · `OrderCreateShipment` | `/orders/:id/:f_id/create-shipment` · Fulfillment 카드 Mark as shipped · `order:update`+`fulfillment:update` | [N07](navigation.md#n07) | [절](#order-create-shipment) · [HTML](details/screens/order-create-shipment.html) | 코드 확인 |
-| order-receive-return | 반품 수령 · `OrderReceiveReturn` | `/orders/:id/returns/:return_id/receive` · Summary Receive items · `return:update` | [N15](navigation.md#n15) | [절](#order-receive-return) · [HTML](details/screens/order-receive-return.html) | 코드 확인 |
-| order-create-return | 반품 생성 · `OrderCreateReturn` | `/orders/:id/returns` · Summary ⋯ Create Return, Return 배너 Continue · `return:create`+`return:update` | [N14](navigation.md#n14), N25 | [절](#order-create-return) · [HTML](details/screens/order-create-return.html) | 코드 확인 |
-| order-create-claim | 클레임 생성 · `OrderCreateClaim` | `/orders/:id/claims` · Summary ⋯ Create/Manage Claim, 배너 Continue · `order_claim:create`+`update` | [N17](navigation.md#n17) | [절](#order-create-claim) · [HTML](details/screens/order-create-claim.html) | 코드 확인 |
-| order-create-exchange | 교환 생성 · `OrderCreateExchange` | `/orders/:id/exchanges` · Summary ⋯ Create/Manage Exchange, 배너 Continue · `order_exchange:create`+`update` | [N18](navigation.md#n18) | [절](#order-create-exchange) · [HTML](details/screens/order-create-exchange.html) | 코드 확인 |
-| order-create-edit | 주문 편집 · `OrderCreateEdit` | `/orders/:id/edits` · Summary ⋯ Edit order, 배너 Continue edit · `order_change:create`+`update` | [N19](navigation.md#n19) | [절](#order-create-edit) · [HTML](details/screens/order-create-edit.html) | 코드 확인 |
-| order-create-refund | 환불(잔액 정산 변형 포함) · `OrderCreateRefund` | `/orders/:id/refund[?paymentId=]` · 결제 행 ⋯ Refund, Summary Refund $ · `order:update`+`refund:create` | [N13](navigation.md#n13) | [절](#order-create-refund) · [HTML](details/screens/order-create-refund.html) | 코드 확인 · `order-balance-settlement`는 별도 라우트가 아니라 이 페이지의 장면 |
-| order-request-transfer | 소유권 이전 · `OrderRequestTransfer` | `/orders/:id/transfer` · Customer ⋯ Transfer ownership · `customer:update`+`order:update` | [N20](navigation.md#n20) | [절](#order-request-transfer) · [HTML](details/screens/order-request-transfer.html) | 코드 확인 |
-| order-edit-email | 이메일 수정 · `OrderEditEmail` | `/orders/:id/email` · Customer ⋯ Email · `order:update` | [N21](navigation.md#n21) | [절](#order-edit-email) · [HTML](details/screens/order-edit-email.html) | 코드 확인 |
-| order-edit-shipping-address | 배송지 수정 · `OrderEditShippingAddress` | `/orders/:id/shipping-address` · Customer ⋯ Shipping address · `order_address:update`+`order:update` | [N22](navigation.md#n22) | [절](#order-edit-shipping-address) · [HTML](details/screens/order-edit-shipping-address.html) | 코드 확인 |
-| order-edit-billing-address | 청구지 수정 · `OrderEditBillingAddress` | `/orders/:id/billing-address` · Customer ⋯ Billing address · 위와 같음 | [N22](navigation.md#n22) | [절](#order-edit-billing-address) · [HTML](details/screens/order-edit-billing-address.html) | 코드 확인 |
-| order-metadata | 메타데이터 수정 · `OrderMetadata` | `/orders/:id/metadata/edit` · Metadata 카드 아이콘 · `order:update` | [N23](navigation.md#n23) | [절](#order-metadata) · [HTML](details/screens/order-metadata.html) | 코드 확인 |
+| order-list | 주문 목록 · `OrderList` | `/orders` · 사이드바 Orders, 홈 리다이렉트, 브레드크럼 · `order:read` | [N01](navigation-admin.md#n01), [N02](navigation-admin.md#n02) | [절](#order-list) · [HTML](details/screens/order-list.html) | 코드 확인 · `routes/orders/order-list` |
+| order-export | 주문 내보내기 · `OrderExport` | `/orders/export` (목록 위 드로어) · 목록 Export · `order:read` | [N02](navigation-admin.md#n02) | [절](#order-export) · [HTML](details/screens/order-export.html) | 코드 확인 · `routes/orders/order-export` |
+| order-detail | 주문 상세 · `OrderDetail` | `/orders/:id` · 목록 행, 검색, 고객 상세, 하위 화면 복귀 · `order:read`(로더 권한 검사) | N01, [N03](navigation-admin.md#n03)~N25 | [절](#order-detail) · [HTML](details/screens/order-detail.html) | 코드 확인 · `routes/orders/order-detail` |
+| order-create-fulfillment | 출고 생성 · `OrderCreateFulfillment` | `/orders/:id/fulfillment?requires_shipping=` · Unfulfilled ⋯ Fulfill items · `order:update`+`fulfillment:create` | [N05](navigation-admin.md#n05), N25 | [절](#order-create-fulfillment) · [HTML](details/screens/order-create-fulfillment.html) | 코드 확인 |
+| order-allocate-items | 재고 할당 · `OrderAllocateItems` | `/orders/:id/allocate-items` · Summary Allocate items · `reservation_item:create` | [N06](navigation-admin.md#n06) | [절](#order-allocate-items) · [HTML](details/screens/order-allocate-items.html) | 코드 확인 |
+| order-create-shipment | 배송 처리 · `OrderCreateShipment` | `/orders/:id/:f_id/create-shipment` · Fulfillment 카드 Mark as shipped · `order:update`+`fulfillment:update` | [N07](navigation-admin.md#n07) | [절](#order-create-shipment) · [HTML](details/screens/order-create-shipment.html) | 코드 확인 |
+| order-receive-return | 반품 수령 · `OrderReceiveReturn` | `/orders/:id/returns/:return_id/receive` · Summary Receive items · `return:update` | [N15](navigation-admin.md#n15) | [절](#order-receive-return) · [HTML](details/screens/order-receive-return.html) | 코드 확인 |
+| order-create-return | 반품 생성 · `OrderCreateReturn` | `/orders/:id/returns` · Summary ⋯ Create Return, Return 배너 Continue · `return:create`+`return:update` | [N14](navigation-admin.md#n14), N25 | [절](#order-create-return) · [HTML](details/screens/order-create-return.html) | 코드 확인 |
+| order-create-claim | 클레임 생성 · `OrderCreateClaim` | `/orders/:id/claims` · Summary ⋯ Create/Manage Claim, 배너 Continue · `order_claim:create`+`update` | [N17](navigation-admin.md#n17) | [절](#order-create-claim) · [HTML](details/screens/order-create-claim.html) | 코드 확인 |
+| order-create-exchange | 교환 생성 · `OrderCreateExchange` | `/orders/:id/exchanges` · Summary ⋯ Create/Manage Exchange, 배너 Continue · `order_exchange:create`+`update` | [N18](navigation-admin.md#n18) | [절](#order-create-exchange) · [HTML](details/screens/order-create-exchange.html) | 코드 확인 |
+| order-create-edit | 주문 편집 · `OrderCreateEdit` | `/orders/:id/edits` · Summary ⋯ Edit order, 배너 Continue edit · `order_change:create`+`update` | [N19](navigation-admin.md#n19) | [절](#order-create-edit) · [HTML](details/screens/order-create-edit.html) | 코드 확인 |
+| order-create-refund | 환불(잔액 정산 변형 포함) · `OrderCreateRefund` | `/orders/:id/refund[?paymentId=]` · 결제 행 ⋯ Refund, Summary Refund $ · `order:update`+`refund:create` | [N13](navigation-admin.md#n13) | [절](#order-create-refund) · [HTML](details/screens/order-create-refund.html) | 코드 확인 · `order-balance-settlement`는 별도 라우트가 아니라 이 페이지의 장면 |
+| order-request-transfer | 소유권 이전 · `OrderRequestTransfer` | `/orders/:id/transfer` · Customer ⋯ Transfer ownership · `customer:update`+`order:update` | [N20](navigation-admin.md#n20) | [절](#order-request-transfer) · [HTML](details/screens/order-request-transfer.html) | 코드 확인 |
+| order-edit-email | 이메일 수정 · `OrderEditEmail` | `/orders/:id/email` · Customer ⋯ Email · `order:update` | [N21](navigation-admin.md#n21) | [절](#order-edit-email) · [HTML](details/screens/order-edit-email.html) | 코드 확인 |
+| order-edit-shipping-address | 배송지 수정 · `OrderEditShippingAddress` | `/orders/:id/shipping-address` · Customer ⋯ Shipping address · `order_address:update`+`order:update` | [N22](navigation-admin.md#n22) | [절](#order-edit-shipping-address) · [HTML](details/screens/order-edit-shipping-address.html) | 코드 확인 |
+| order-edit-billing-address | 청구지 수정 · `OrderEditBillingAddress` | `/orders/:id/billing-address` · Customer ⋯ Billing address · 위와 같음 | [N22](navigation-admin.md#n22) | [절](#order-edit-billing-address) · [HTML](details/screens/order-edit-billing-address.html) | 코드 확인 |
+| order-metadata | 메타데이터 수정 · `OrderMetadata` | `/orders/:id/metadata/edit` · Metadata 카드 아이콘 · `order:update` | [N23](navigation-admin.md#n23) | [절](#order-metadata) · [HTML](details/screens/order-metadata.html) | 코드 확인 |
 
 - 대상 페이지는 17개이고 HTML도 17개로 1:1 대응한다. 동적 경로(`:id`, `:f_id`, `:return_id`)는 하나의 페이지로 묶었다.
 - 페이지가 아닌 것으로 분류한 대상:
@@ -61,7 +61,7 @@ Topbar Actions > Layout Customizer, Notifications
 <a id="order-list"></a>
 ## 주문 목록 (order-list)
 
-[HTML](details/screens/order-list.html) · Navigation [N01](navigation.md#n01), [N02](navigation.md#n02)
+[HTML](details/screens/order-list.html) · Navigation [N01](navigation-admin.md#n01), [N02](navigation-admin.md#n02)
 
 ```layout
 Screen V Widgets Before, Orders Card, Widgets After
@@ -104,7 +104,7 @@ Toolbar > Filter Bar : 60, Search : 25, Order By : 15
 <a id="order-export"></a>
 ## 주문 내보내기 (order-export)
 
-[HTML](details/screens/order-export.html) · Navigation [N02](navigation.md#n02)
+[HTML](details/screens/order-export.html) · Navigation [N02](navigation-admin.md#n02)
 
 ```layout
 Screen V Drawer Header, Drawer Body, Drawer Footer
@@ -124,7 +124,7 @@ Drawer Footer > Cancel Button, Export Button
 <a id="order-detail"></a>
 ## 주문 상세 (order-detail)
 
-[HTML](details/screens/order-detail.html) · Navigation [N03](navigation.md#n03)~[N25](navigation.md#n25)
+[HTML](details/screens/order-detail.html) · Navigation [N03](navigation-admin.md#n03)~[N25](navigation-admin.md#n25)
 
 ```layout
 Screen > Main Column : 70, Side Column : 30
@@ -205,7 +205,7 @@ Fulfillment Section V Unfulfilled Items Card, Fulfillment Cards
 <a id="order-create-fulfillment"></a>
 ## 출고 생성 (order-create-fulfillment)
 
-[HTML](details/screens/order-create-fulfillment.html) · Navigation [N05](navigation.md#n05)
+[HTML](details/screens/order-create-fulfillment.html) · Navigation [N05](navigation-admin.md#n05)
 
 ```layout
 Screen V Modal Header, Modal Body, Modal Footer
@@ -236,7 +236,7 @@ Modal Footer > Cancel Button, Create Fulfillment Button
 <a id="order-allocate-items"></a>
 ## 재고 할당 (order-allocate-items)
 
-[HTML](details/screens/order-allocate-items.html) · Navigation [N06](navigation.md#n06)
+[HTML](details/screens/order-allocate-items.html) · Navigation [N06](navigation-admin.md#n06)
 
 ```layout
 Screen V Modal Header, Modal Body, Modal Footer
@@ -264,7 +264,7 @@ Modal Footer > Cancel Button, Allocate Items Button
 <a id="order-create-shipment"></a>
 ## 배송 처리 (order-create-shipment)
 
-[HTML](details/screens/order-create-shipment.html) · Navigation [N07](navigation.md#n07)
+[HTML](details/screens/order-create-shipment.html) · Navigation [N07](navigation-admin.md#n07)
 
 ```layout
 Screen V Modal Header, Modal Body, Modal Footer
@@ -287,7 +287,7 @@ Modal Footer > Cancel Button, Save Button
 <a id="order-receive-return"></a>
 ## 반품 수령 (order-receive-return)
 
-[HTML](details/screens/order-receive-return.html) · Navigation [N15](navigation.md#n15)
+[HTML](details/screens/order-receive-return.html) · Navigation [N15](navigation-admin.md#n15)
 
 ```layout
 Screen V Drawer Header, Drawer Body, Drawer Footer
@@ -315,7 +315,7 @@ Drawer Footer > Cancel Button, Save Button
 <a id="order-create-return"></a>
 ## 반품 생성 (order-create-return)
 
-[HTML](details/screens/order-create-return.html) · Navigation [N14](navigation.md#n14)
+[HTML](details/screens/order-create-return.html) · Navigation [N14](navigation-admin.md#n14)
 
 ```layout
 Screen V Modal Header, Modal Body, Modal Footer
@@ -350,7 +350,7 @@ Modal Footer > Cancel Return Button, Confirm Return Button
 <a id="order-create-claim"></a>
 ## 클레임 생성 (order-create-claim)
 
-[HTML](details/screens/order-create-claim.html) · Navigation [N17](navigation.md#n17)
+[HTML](details/screens/order-create-claim.html) · Navigation [N17](navigation-admin.md#n17)
 
 ```layout
 Screen V Modal Header, Modal Body, Modal Footer
@@ -380,7 +380,7 @@ Modal Footer > Cancel Claim Button, Confirm Claim Button
 <a id="order-create-exchange"></a>
 ## 교환 생성 (order-create-exchange)
 
-[HTML](details/screens/order-create-exchange.html) · Navigation [N18](navigation.md#n18)
+[HTML](details/screens/order-create-exchange.html) · Navigation [N18](navigation-admin.md#n18)
 
 ```layout
 Screen V Modal Header, Modal Body, Modal Footer
@@ -410,7 +410,7 @@ Modal Footer > Cancel Exchange Button, Confirm Exchange Button
 <a id="order-create-edit"></a>
 ## 주문 편집 (order-create-edit)
 
-[HTML](details/screens/order-create-edit.html) · Navigation [N19](navigation.md#n19)
+[HTML](details/screens/order-create-edit.html) · Navigation [N19](navigation-admin.md#n19)
 
 ```layout
 Screen V Modal Header, Modal Body, Modal Footer
@@ -441,7 +441,7 @@ Modal Footer > Cancel Edit Button, Confirm Edit Button
 <a id="order-create-refund"></a>
 ## 환불 (order-create-refund)
 
-[HTML](details/screens/order-create-refund.html) · Navigation [N13](navigation.md#n13)
+[HTML](details/screens/order-create-refund.html) · Navigation [N13](navigation-admin.md#n13)
 
 ```layout
 Screen V Drawer Header, Drawer Body, Drawer Footer
@@ -468,7 +468,7 @@ Drawer Footer > Cancel Button, Save Button
 <a id="order-request-transfer"></a>
 ## 소유권 이전 (order-request-transfer)
 
-[HTML](details/screens/order-request-transfer.html) · Navigation [N20](navigation.md#n20)
+[HTML](details/screens/order-request-transfer.html) · Navigation [N20](navigation-admin.md#n20)
 
 ```layout
 Screen V Drawer Header, Drawer Body, Drawer Footer
@@ -492,7 +492,7 @@ Drawer Footer > Cancel Button, Save Button
 <a id="order-edit-email"></a>
 ## 이메일 수정 (order-edit-email)
 
-[HTML](details/screens/order-edit-email.html) · Navigation [N21](navigation.md#n21)
+[HTML](details/screens/order-edit-email.html) · Navigation [N21](navigation-admin.md#n21)
 
 ```layout
 Screen V Drawer Header, Drawer Body, Drawer Footer
@@ -512,7 +512,7 @@ Drawer Footer > Cancel Button, Save Button
 <a id="order-edit-shipping-address"></a>
 ## 배송지 수정 (order-edit-shipping-address)
 
-[HTML](details/screens/order-edit-shipping-address.html) · Navigation [N22](navigation.md#n22)
+[HTML](details/screens/order-edit-shipping-address.html) · Navigation [N22](navigation-admin.md#n22)
 
 ```layout
 Screen V Drawer Header, Drawer Body, Drawer Footer
@@ -532,7 +532,7 @@ Drawer Footer > Cancel Button, Save Button
 <a id="order-edit-billing-address"></a>
 ## 청구지 수정 (order-edit-billing-address)
 
-[HTML](details/screens/order-edit-billing-address.html) · Navigation [N22](navigation.md#n22)
+[HTML](details/screens/order-edit-billing-address.html) · Navigation [N22](navigation-admin.md#n22)
 
 ```layout
 Screen V Drawer Header, Drawer Body, Drawer Footer
@@ -553,7 +553,7 @@ Drawer Footer > Cancel Button, Save Button
 <a id="order-metadata"></a>
 ## 메타데이터 수정 (order-metadata)
 
-[HTML](details/screens/order-metadata.html) · Navigation [N23](navigation.md#n23)
+[HTML](details/screens/order-metadata.html) · Navigation [N23](navigation-admin.md#n23)
 
 ```layout
 Screen V Drawer Header, Drawer Body, Drawer Footer
