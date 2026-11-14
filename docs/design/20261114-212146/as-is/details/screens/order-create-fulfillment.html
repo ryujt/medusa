@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>order-create-fulfillment</title>
+<link rel="stylesheet" href="assets/medusa.css">
+</head>
+<body data-scenes="default:기본(프리필)|loading:로딩(빈 모달)|method-changed:배송방법 변경(Be aware)|profile-mismatch:배송 프로필 불일치|no-option:배송방법 없음(제출 비활성)|qty-error:수량 오류|no-items:처리할 품목 없음|failed:생성 실패 토스트|leave-prompt:이탈 확인"
+  data-note="근거: order-create-fulfillment/order-create-fulfillments.tsx, components/order-create-fulfillment-form/*.tsx, en.json orders.fulfillment.*. FocusModal 헤더에 제목 없음(X+esc만). 본문 실제 최대폭 736px(공통 CSS는 720px). Available/In stock 수치(100/120, 50/60)와 실패 토스트 문구는 예시(미확인). no-option 은 계약 외 추가 장면(주문 배송방법에 shipping_option_id 가 없어 위치·배송방법이 프리필되지 않은 경우: Create Fulfillment 비활성, requires_shipping=true 면 모든 품목이 회색, Available/In stock N/A). 성공 토스트 Fulfillment created successfully 는 상세(order-detail.html#toast-success)에서 보인다.">
+
+<!-- 부모 페이지(주문 상세)를 단순화한 셸. 경로형 하위 화면이 그 위에 열린다. -->
+<div class="shell" aria-hidden="true">
+  <aside class="sidebar">
+    <div class="store"><span class="avatar">M</span><b>Medusa Store</b></div>
+    <nav>
+      <a href="order-list.html#default" class="active"><span class="ic">▤</span>Orders</a>
+      <a href="#" title="범위 밖"><span class="ic">▣</span>Products</a>
+      <a href="#" title="범위 밖"><span class="ic">▦</span>Inventory</a>
+      <a href="#" title="범위 밖"><span class="ic">◉</span>Customers</a>
+      <a href="#" title="범위 밖"><span class="ic">%</span>Promotions</a>
+      <a href="#" title="범위 밖"><span class="ic">$</span>Price Lists</a>
+    </nav>
+    <div class="bottom"><nav><a href="#" title="범위 밖"><span class="ic">⚙</span>Settings</a></nav></div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumbs"><a href="order-list.html#default">Orders</a><span>›</span><b>#1042</b></div>
+      <span class="muted">🔔</span>
+    </div>
+    <div class="content">
+      <div class="two-col">
+        <div class="col-main">
+          <div class="container">
+            <div class="sec between"><div><div class="h2">#1042</div><div class="small subtle">10 Nov 2026, 14:32 from Default Sales Channel</div></div><div class="row"><span class="badge">Not paid</span><span class="badge orange">Not fulfilled</span></div></div>
+          </div>
+          <div class="container"><div class="sec"><div class="h2">Summary</div></div><div class="sec stack"><div class="sk" style="height:12px;width:60%"></div><div class="sk" style="height:12px;width:40%"></div><div class="sk" style="height:12px;width:70%"></div></div></div>
+          <div class="container"><div class="sec"><div class="h2">Payments</div></div><div class="sec"><div class="sk" style="height:12px;width:50%"></div></div></div>
+        </div>
+        <div class="col-side">
+          <div class="container"><div class="sec"><div class="h2">Customer</div></div><div class="sec stack"><div class="sk" style="height:12px;width:60%"></div><div class="sk" style="height:12px;width:80%"></div></div></div>
+          <div class="container"><div class="sec"><div class="h2">Activity</div></div><div class="sec"><div class="sk" style="height:12px;width:70%"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="overlay"></div>
+
+<!-- RouteFocusModal: 준비 전에는 children 이 없어 빈 패널만 보인다 (order-create-fulfillments.tsx:24-31) -->
+<div class="focus-modal" data-scene="loading" aria-label="loading"></div>
+
+<form class="focus-modal" data-not-scene="loading" onsubmit="return false">
+  <!-- RouteFocusModal.Header: X + esc, 제목 없음 (focus-modal.tsx:128-134) -->
+  <header>
+    <div class="row">
+      <a class="btn icon ghost" href="order-detail.html#default" aria-label="Close" data-not-scene="leave-prompt">✕</a>
+      <a class="btn icon ghost" href="#leave-prompt" aria-label="Close" data-scene="leave-prompt">✕</a>
+      <span class="kbd">esc</span>
+    </div>
+  </header>
+
+  <div class="body">
+    <div class="inner" style="max-width:736px;gap:0">
+
+      <!-- Location (form.tsx:250-283) -->
+      <div style="padding-bottom:32px;border-bottom:1px dashed var(--border-strong)">
+        <div class="row" style="flex-wrap:wrap;gap:8px">
+          <div class="grow" style="min-width:240px">
+            <div class="h3">Location</div>
+            <div class="subtle small">Choose which location you want to fulfill items from.</div>
+          </div>
+          <div class="grow" style="min-width:240px">
+            <div class="select row" style="align-items:center;padding-right:24px"><span data-not-scene="no-option">European Warehouse</span><span data-scene="no-option">&nbsp;</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipping method (form.tsx:285-332) -->
+      <div style="padding:32px 0;border-bottom:1px dashed var(--border-strong)">
+        <div class="row" style="flex-wrap:wrap;gap:8px">
+          <div class="grow" style="min-width:240px">
+            <div class="h3">Shipping method</div>
+            <div class="subtle small">Choose a different shipping method from the one customer selected</div>
+          </div>
+          <div class="grow" style="min-width:240px">
+            <div class="select row" style="align-items:center;padding-right:24px">
+              <span data-scene="default loading qty-error no-items failed leave-prompt">Standard Shipping</span>
+              <span data-scene="method-changed">Express Shipping</span>
+              <span data-scene="profile-mismatch">Oversized Freight</span>
+              <span data-scene="no-option" class="muted" title="위치 미선택 시 옵션 조회 비활성(enabled: !!selectedLocationId)">&nbsp;</span>
+            </div>
+          </div>
+        </div>
+        <!-- differentOptionSelected 일 때만 (form.tsx:322-331) -->
+        <div class="alert warning" style="margin-top:16px;padding:16px;flex-direction:column;gap:0" data-scene="method-changed profile-mismatch">
+          <span style="font-weight:500">Be aware</span>
+          <span class="muted">The selected shipping option is different from the one selected by the customer.</span>
+        </div>
+      </div>
+
+      <!-- Items to fulfill (form.tsx:333-373) -->
+      <div style="margin-top:32px">
+        <div class="h3">Items to fulfill</div>
+        <div class="subtle small">Choose items and quantities to fulfill</div>
+
+        <div class="stack" style="gap:4px" data-not-scene="no-items no-option">
+          <!-- 품목 1 (order-create-fulfillment-item.tsx:139-256) -->
+          <div style="margin:8px 0;border-radius:12px;background:var(--bg-subtle);box-shadow:var(--shadow-border)">
+            <div class="row" style="gap:0">
+              <div class="grow row" style="flex-wrap:wrap;gap:8px;padding:12px;border-bottom:1px solid var(--border-base)">
+                <div class="row grow" style="gap:12px;min-width:220px">
+                  <span class="thumb"></span>
+                  <div>
+                    <div><span style="font-weight:500">Medusa T-Shirt</span><span>(SHIRT-L-BLACK)</span></div>
+                    <div class="subtle">L / Black</div>
+                  </div>
+                </div>
+                <div class="row grow" style="gap:4px;min-width:280px">
+                  <span style="width:2px;height:16px;background:#e5e7eb;margin-right:8px"></span>
+                  <div class="grow stack" style="gap:0"><span class="subtle" style="font-weight:500">Available</span><span class="subtle">100</span></div>
+                  <div class="row grow" style="gap:4px">
+                    <span style="width:2px;height:16px;background:#e5e7eb;margin-right:8px"></span>
+                    <div class="stack" style="gap:0"><span class="subtle" style="font-weight:500">In stock</span>
+                      <span class="subtle">120 <span style="font-weight:500;color:#ef4444" data-not-scene="qty-error leave-prompt">-2</span><span style="font-weight:500;color:#ef4444" data-scene="qty-error">-3</span><span style="font-weight:500;color:#ef4444" data-scene="leave-prompt">-1</span></span>
+                    </div>
+                  </div>
+                  <div class="row grow" style="gap:4px;align-items:flex-start">
+                    <div class="stack" style="gap:4px">
+                      <input class="input" style="width:50px;text-align:right;border-radius:8px;background:#fff" value="2" data-not-scene="qty-error leave-prompt" aria-label="quantity">
+                      <input class="input invalid" style="width:50px;text-align:right;border-radius:8px;background:#fff" value="3" data-scene="qty-error" aria-label="quantity">
+                      <input class="input" style="width:50px;text-align:right;border-radius:8px;background:#fff" value="1" data-scene="leave-prompt" aria-label="quantity">
+                      <!-- wrongQuantity_other, count=max (item.tsx:225-235) -->
+                      <span class="err" data-scene="qty-error">Quantity should be a number between 1 and 2</span>
+                    </div>
+                    <span class="subtle" style="margin-top:6px">/ 2 qty.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 품목 2: profile-mismatch 장면에서 회색+툴팁 (item.tsx:141-156) -->
+          <div class="rel" style="margin:8px 0;border-radius:12px;background:var(--bg-subtle);box-shadow:var(--shadow-border)">
+            <div class="row" style="gap:0">
+              <span data-scene="profile-mismatch" style="margin-left:16px;color:var(--tag-orange-icon)" title="The shipping option you have selected don’t allow fulfillment of this item">ⓘ</span>
+              <div class="grow row" style="flex-wrap:wrap;gap:8px;padding:12px;border-bottom:1px solid var(--border-base)" data-not-scene="profile-mismatch">
+                <div class="row grow" style="gap:12px;min-width:220px">
+                  <span class="thumb"></span>
+                  <div>
+                    <div><span style="font-weight:500">Medusa Sweatpants</span><span>(SWEAT-M-GRAY)</span></div>
+                    <div class="subtle">M / Gray</div>
+                  </div>
+                </div>
+                <div class="row grow" style="gap:4px;min-width:280px">
+                  <span style="width:2px;height:16px;background:#e5e7eb;margin-right:8px"></span>
+                  <div class="grow stack" style="gap:0"><span class="subtle" style="font-weight:500">Available</span><span class="subtle">50</span></div>
+                  <div class="row grow" style="gap:4px">
+                    <span style="width:2px;height:16px;background:#e5e7eb;margin-right:8px"></span>
+                    <div class="stack" style="gap:0"><span class="subtle" style="font-weight:500">In stock</span><span class="subtle">60 <span style="font-weight:500;color:#ef4444">-1</span></span></div>
+                  </div>
+                  <div class="row grow" style="gap:4px">
+                    <input class="input" style="width:50px;text-align:right;border-radius:8px;background:#fff" value="1" aria-label="quantity">
+                    <span class="subtle">/ 1 qty.</span>
+                  </div>
+                </div>
+              </div>
+              <!-- disabled: pointer-events-none opacity-50 -->
+              <div class="grow row" style="flex-wrap:wrap;gap:8px;padding:12px;border-bottom:1px solid var(--border-base);opacity:.5;pointer-events:none" data-scene="profile-mismatch">
+                <div class="row grow" style="gap:12px;min-width:220px">
+                  <span class="thumb"></span>
+                  <div>
+                    <div><span style="font-weight:500">Medusa Sweatpants</span><span>(SWEAT-M-GRAY)</span></div>
+                    <div class="subtle">M / Gray</div>
+                  </div>
+                </div>
+                <div class="row grow" style="gap:4px;min-width:280px">
+                  <span style="width:2px;height:16px;background:#e5e7eb;margin-right:8px"></span>
+                  <div class="grow stack" style="gap:0"><span class="subtle" style="font-weight:500">Available</span><span class="subtle">50</span></div>
+                  <div class="row grow" style="gap:4px">
+                    <span style="width:2px;height:16px;background:#e5e7eb;margin-right:8px"></span>
+                    <div class="stack" style="gap:0"><span class="subtle" style="font-weight:500">In stock</span><span class="subtle">60 <span style="font-weight:500;color:#ef4444">-1</span></span></div>
+                  </div>
+                  <div class="row grow" style="gap:4px">
+                    <input class="input" style="width:50px;text-align:right;border-radius:8px;background:#fff" value="1" aria-label="quantity">
+                    <span class="subtle">/ 1 qty.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Tooltip side="top" (item.tsx:143-148) -->
+            <div data-scene="profile-mismatch" style="position:absolute;left:0;top:-30px;background:var(--button-inverted);color:#fff;font-size:12px;padding:4px 8px;border-radius:6px;white-space:nowrap">The shipping option you have selected don’t allow fulfillment of this item</div>
+          </div>
+        </div>
+
+
+        <!-- no-option: 배송 옵션 미선택 → requiresShipping 이면 모든 품목 disabled, 위치 없음 → Available/In stock N/A (item.tsx:47-54,181,193) -->
+        <div class="stack" style="gap:4px" data-scene="no-option">
+          <div style="margin:8px 0;border-radius:12px;background:var(--bg-subtle);box-shadow:var(--shadow-border)">
+            <div class="row" style="gap:0">
+              <span style="margin-left:16px;color:var(--tag-orange-icon)" title="The shipping option you have selected don’t allow fulfillment of this item">ⓘ</span>
+              <div class="grow row" style="flex-wrap:wrap;gap:8px;padding:12px;border-bottom:1px solid var(--border-base);opacity:.5;pointer-events:none">
+                <div class="row grow" style="gap:12px;min-width:220px"><span class="thumb"></span><div><div><span style="font-weight:500">Medusa T-Shirt</span><span>(SHIRT-L-BLACK)</span></div><div class="subtle">L / Black</div></div></div>
+                <div class="row grow" style="gap:4px;min-width:280px">
+                  <span style="width:2px;height:16px;background:#e5e7eb;margin-right:8px"></span>
+                  <div class="grow stack" style="gap:0"><span class="subtle" style="font-weight:500">Available</span><span class="subtle">N/A</span></div>
+                  <div class="row grow" style="gap:4px"><span style="width:2px;height:16px;background:#e5e7eb;margin-right:8px"></span><div class="stack" style="gap:0"><span class="subtle" style="font-weight:500">In stock</span><span class="subtle">N/A</span></div></div>
+                  <div class="row grow" style="gap:4px"><input class="input" style="width:50px;text-align:right;border-radius:8px;background:#fff" value="2" aria-label="quantity"><span class="subtle">/ 2 qty.</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="margin:8px 0;border-radius:12px;background:var(--bg-subtle);box-shadow:var(--shadow-border)">
+            <div class="row" style="gap:0">
+              <span style="margin-left:16px;color:var(--tag-orange-icon)" title="The shipping option you have selected don’t allow fulfillment of this item">ⓘ</span>
+              <div class="grow row" style="flex-wrap:wrap;gap:8px;padding:12px;border-bottom:1px solid var(--border-base);opacity:.5;pointer-events:none">
+                <div class="row grow" style="gap:12px;min-width:220px"><span class="thumb"></span><div><div><span style="font-weight:500">Medusa Sweatpants</span><span>(SWEAT-M-GRAY)</span></div><div class="subtle">M / Gray</div></div></div>
+                <div class="row grow" style="gap:4px;min-width:280px">
+                  <span style="width:2px;height:16px;background:#e5e7eb;margin-right:8px"></span>
+                  <div class="grow stack" style="gap:0"><span class="subtle" style="font-weight:500">Available</span><span class="subtle">N/A</span></div>
+                  <div class="row grow" style="gap:4px"><span style="width:2px;height:16px;background:#e5e7eb;margin-right:8px"></span><div class="stack" style="gap:0"><span class="subtle" style="font-weight:500">In stock</span><span class="subtle">N/A</span></div></div>
+                  <div class="row grow" style="gap:4px"><input class="input" style="width:50px;text-align:right;border-radius:8px;background:#fff" value="1" aria-label="quantity"><span class="subtle">/ 1 qty.</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- errors.root (form.tsx:364-372) -->
+        <div class="alert error" data-scene="no-items" style="align-items:center;margin-top:8px">No items to fulfill.</div>
+      </div>
+
+      <!-- Send notification (form.tsx:375-406) -->
+      <div style="margin-top:32px;padding-top:32px;border-top:1px dashed var(--border-strong)">
+        <div class="between">
+          <span class="h3">Send notification</span>
+          <span class="switch on" role="switch" aria-checked="true"></span>
+        </div>
+        <div class="subtle small" style="margin-top:4px">Notify customers about the created fulfillment.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <a class="btn sm" href="order-detail.html#default" data-not-scene="leave-prompt">Cancel</a>
+    <a class="btn sm" href="#leave-prompt" data-scene="leave-prompt">Cancel</a>
+    <!-- disabled={!selectedShippingOptionId} (form.tsx:418-425) -->
+    <a class="btn sm primary" href="order-detail.html#toast-success" data-not-scene="no-option">Create Fulfillment</a>
+    <button class="btn sm" disabled data-scene="no-option">Create Fulfillment</button>
+  </footer>
+</form>
+
+<!-- 실패: toast.error(e.message) (form.tsx:179-183). 서버 문구는 예시 -->
+<div class="toast error" data-scene="failed" role="status">
+  <span class="ti"></span>
+  <div>Insufficient stock for item: Medusa T-Shirt at location European Warehouse</div>
+</div>
+
+<!-- RouteModalForm Prompt (route-modal-form.tsx:73-90): 폼이 dirty 일 때 닫으면 -->
+<div class="overlay" style="z-index:70" data-scene="leave-prompt"></div>
+<div class="prompt" data-scene="leave-prompt" role="alertdialog">
+  <div class="p-body">
+    <div class="h2">Are you sure you want to leave this form?</div>
+    <div class="subtle">You have unsaved changes that will be lost if you exit this form.</div>
+  </div>
+  <div class="p-foot">
+    <a class="btn sm" href="#default" data-goto="default">Cancel</a>
+    <a class="btn sm primary" href="order-detail.html#default">Continue</a>
+  </div>
+</div>
+
+<script src="assets/scenes.js"></script>
+</body>
+</html>

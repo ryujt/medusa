@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>order-create-shipment</title>
+<link rel="stylesheet" href="assets/medusa.css">
+</head>
+<body data-scenes="default:기본(추적 행 없음)|with-rows:추적 행 2개|failed:저장 실패 토스트|loading:로딩(빈 모달)"
+  data-note="근거: order-create-shipment/order-create-shipment.tsx, components/order-create-shipment-form/order-create-shipment-form.tsx·constants.ts, en.json orders.shipment.*. 시작 시 labels 배열이 비어 행이 없고 Add tracking number 로 추가한다. md 이상에서는 첫 행만 필드 라벨을 보인다(좁은 화면은 모든 행에 라벨). 빈 URL 은 '#' 으로 저장된다(form.tsx:62-68). 실패 토스트 문구는 서버 메시지 예시(미확인). Save 는 비활성 조건이 없다. 이탈 프롬프트는 행 추가 등으로 dirty 일 때 동일 RouteModalForm 프롬프트가 뜨지만 계약에 없어 생략.">
+
+<!-- 부모 페이지(주문 상세)를 단순화한 셸. 경로형 하위 화면이 그 위에 열린다. -->
+<div class="shell" aria-hidden="true">
+  <aside class="sidebar">
+    <div class="store"><span class="avatar">M</span><b>Medusa Store</b></div>
+    <nav>
+      <a href="order-list.html#default" class="active"><span class="ic">▤</span>Orders</a>
+      <a href="#" title="범위 밖"><span class="ic">▣</span>Products</a>
+      <a href="#" title="범위 밖"><span class="ic">▦</span>Inventory</a>
+      <a href="#" title="범위 밖"><span class="ic">◉</span>Customers</a>
+      <a href="#" title="범위 밖"><span class="ic">%</span>Promotions</a>
+      <a href="#" title="범위 밖"><span class="ic">$</span>Price Lists</a>
+    </nav>
+    <div class="bottom"><nav><a href="#" title="범위 밖"><span class="ic">⚙</span>Settings</a></nav></div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumbs"><a href="order-list.html#default">Orders</a><span>›</span><b>#1042</b></div>
+      <span class="muted">🔔</span>
+    </div>
+    <div class="content">
+      <div class="two-col">
+        <div class="col-main">
+          <div class="container">
+            <div class="sec between"><div><div class="h2">#1042</div><div class="small subtle">10 Nov 2026, 14:32 from Default Sales Channel</div></div><div class="row"><span class="badge">Not paid</span><span class="badge orange">Not fulfilled</span></div></div>
+          </div>
+          <div class="container"><div class="sec"><div class="h2">Summary</div></div><div class="sec stack"><div class="sk" style="height:12px;width:60%"></div><div class="sk" style="height:12px;width:40%"></div><div class="sk" style="height:12px;width:70%"></div></div></div>
+          <div class="container"><div class="sec"><div class="h2">Payments</div></div><div class="sec"><div class="sk" style="height:12px;width:50%"></div></div></div>
+        </div>
+        <div class="col-side">
+          <div class="container"><div class="sec"><div class="h2">Customer</div></div><div class="sec stack"><div class="sk" style="height:12px;width:60%"></div><div class="sk" style="height:12px;width:80%"></div></div></div>
+          <div class="container"><div class="sec"><div class="h2">Activity</div></div><div class="sec"><div class="sk" style="height:12px;width:70%"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="overlay"></div>
+<div class="focus-modal" data-scene="loading" aria-label="loading"></div>
+
+<form class="focus-modal" data-not-scene="loading" onsubmit="return false">
+  <header>
+    <div class="row">
+      <a class="btn icon ghost" href="order-detail.html#fulfilled" aria-label="Close">✕</a>
+      <span class="kbd">esc</span>
+    </div>
+  </header>
+
+  <div class="body">
+    <div class="inner" style="max-width:736px;gap:0">
+      <div class="stack" style="gap:0">
+        <div class="h1" style="margin-bottom:16px">Mark fulfillment shipped</div>
+
+        <!-- labels 필드 배열 (form.tsx:111-195) -->
+        <div class="stack" style="gap:0" data-scene="with-rows failed">
+          <div style="display:flex;flex-wrap:wrap;gap:0 16px;align-items:flex-end">
+            <div class="field" style="margin-bottom:8px;flex:1 1 160px;min-width:0"><label>Tracking number</label><input class="input" value="1Z999AA10123456784"></div>
+            <div class="field" style="margin-bottom:8px;flex:1 1 160px;min-width:0"><label>Tracking URL</label><input class="input" value="https://www.ups.com/track?tracknum=1Z999AA10123456784"></div>
+            <div class="field" style="margin-bottom:8px;flex:1 1 160px;min-width:0"><label>Label URL</label><input class="input" placeholder="https://example.com/label/123"></div>
+            <a class="btn icon ghost muted" href="#with-rows" style="margin-bottom:8px" aria-label="Remove">✕</a>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:0 16px;align-items:flex-end">
+            <!-- index>0: md:hidden 라벨 -->
+            <div class="field" style="margin-bottom:8px;flex:1 1 160px;min-width:0"><input class="input" placeholder="123-456-789"></div>
+            <div class="field" style="margin-bottom:8px;flex:1 1 160px;min-width:0"><input class="input" placeholder="https://example.com/tracking/123"></div>
+            <div class="field" style="margin-bottom:8px;flex:1 1 160px;min-width:0"><input class="input" placeholder="https://example.com/label/123"></div>
+            <a class="btn icon ghost muted" href="#with-rows" style="margin-bottom:8px" aria-label="Remove">✕</a>
+          </div>
+        </div>
+
+        <!-- variant="secondary", 기본 크기, self-end (form.tsx:197-210) -->
+        <a class="btn" href="#with-rows" data-goto="with-rows" style="margin-top:8px;align-self:flex-end;height:32px">Add tracking number</a>
+      </div>
+
+      <!-- Send notification, 기본값 !order.no_notification (form.tsx:45-48, 213-244) -->
+      <div style="margin-top:32px;padding-top:32px;border-top:1px solid var(--border-base)">
+        <div class="between">
+          <span class="h3">Send notification</span>
+          <span class="switch on" role="switch" aria-checked="true"></span>
+        </div>
+        <div class="subtle small" style="margin-top:4px">Notify the customer about this shipment.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <a class="btn sm" href="order-detail.html#fulfilled">Cancel</a>
+    <a class="btn sm primary" href="order-detail.html#shipped">Save</a>
+  </footer>
+</form>
+
+<!-- onError: toast.error(e.message) (form.tsx:87-89) -->
+<div class="toast error" data-scene="failed" role="status">
+  <span class="ti"></span>
+  <div>Fulfillment with id: ful_01JXYZ123 not found</div>
+</div>
+
+<script src="assets/scenes.js"></script>
+</body>
+</html>

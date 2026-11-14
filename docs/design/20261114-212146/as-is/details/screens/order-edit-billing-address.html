@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>order-edit-billing-address</title>
+<link rel="stylesheet" href="assets/medusa.css">
+</head>
+<body data-scenes="default:기본(10개 필드)|required-error:Address 빈값 오류|failed:실패 토스트|leave-prompt:이탈 프롬프트" data-note="근거: routes/orders/order-edit-billing-address/edit-order-billing-address-form.tsx. Country 는 비활성 CountrySelect(국가 변경 불가). Address 만 필수(zod min(1)). billing 차이: First/Last Name 에 Form.ErrorMessage 가 있고(optional 이라 실제로 비어 있음), 폼 오류 시 Save 비활성. 성공 토스트 'Order billing address updated.' 후 상세로 복귀. required-error 문구는 zod v4 기본 메시지로 추정(미확인). failed 토스트는 서버 error.message 예시(미확인). leave-prompt 는 값 변경(City) 후 닫기 시 RouteModalForm 이탈 프롬프트.">
+<div class="shell" aria-hidden="true">
+  <aside class="sidebar">
+    <div class="store"><span class="avatar">M</span><b>Medusa Store</b></div>
+    <nav>
+      <a href="#"><span class="ic">⌂</span>Search</a>
+      <a class="active" href="order-list.html#default"><span class="ic">▤</span>Orders</a>
+      <a href="#"><span class="ic">▣</span>Products</a>
+      <a href="#"><span class="ic">▥</span>Inventory</a>
+      <a href="#"><span class="ic">☺</span>Customers</a>
+      <a href="#"><span class="ic">%</span>Promotions</a>
+      <a href="#"><span class="ic">$</span>Price Lists</a>
+    </nav>
+    <div class="bottom"><a href="#">⚙ Settings</a></div>
+  </aside>
+  <div class="main">
+    <div class="topbar"><div class="crumbs"><a href="order-list.html#default">Orders</a><span>›</span><b>#1042</b></div></div>
+    <div class="content" style="opacity:.6">
+      <div class="two-col">
+        <div class="col-main">
+          <div class="container"><div class="sec between"><div><div class="h2">#1042</div><div class="muted small">2026-11-10 14:32 from Default Sales Channel</div></div><div class="row"><span class="badge green">Paid</span><span class="badge orange">Not fulfilled</span></div></div></div>
+          <div class="container"><div class="sec"><div class="h2">Summary</div></div><div class="sec"><div class="sk" style="height:56px"></div></div><div class="sec"><div class="sk" style="height:56px"></div></div></div>
+          <div class="container"><div class="sec"><div class="h2">Payments</div></div><div class="sec"><div class="sk" style="height:40px"></div></div></div>
+        </div>
+        <div class="col-side">
+          <div class="container"><div class="sec"><div class="h2">Customer</div></div><div class="sec"><div>Jane Doe</div><div class="muted">jane@example.com</div></div></div>
+          <div class="container"><div class="sec"><div class="h2">Activity</div></div><div class="sec"><div class="sk" style="height:80px"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="overlay"></div>
+<div class="drawer" role="dialog" aria-label="Edit billing address">
+  <header>
+    <div class="h2">Edit billing address</div>
+    <div class="row"><span class="kbd">esc</span><a class="btn ghost icon" href="order-detail.html#default" title="Close">✕</a></div>
+  </header>
+  <!-- edit-order-billing-address-form.tsx:73-223 필드 순서 그대로 -->
+  <div class="body">
+    <div class="field"><label>Address</label>
+      <input class="input" value="12 Market St" data-not-scene="required-error">
+      <input class="input invalid" value="" data-scene="required-error">
+      <span class="err" data-scene="required-error">Too small: expected string to have &gt;=1 characters</span>
+    </div>
+    <div class="field"><label>Apartment, suite, etc. <span class="opt">(Optional)</span></label>
+      <input class="input" value="Apt 4">
+    </div>
+    <div class="field"><label>Postal Code <span class="opt">(Optional)</span></label>
+      <input class="input" value="94103">
+    </div>
+    <div class="field"><label>City <span class="opt">(Optional)</span></label>
+      <input class="input" value="San Francisco" data-not-scene="leave-prompt">
+      <input class="input" value="Oakland" data-scene="leave-prompt">
+    </div>
+    <div class="field"><label>Country</label>
+      <!-- CountrySelect disabled (Combobox), 수정 불가 -->
+      <button class="select" type="button" disabled style="text-align:left;background-color:var(--bg-disabled);color:var(--fg-disabled);cursor:not-allowed">United States</button>
+    </div>
+    <div class="field"><label>State <span class="opt">(Optional)</span></label>
+      <input class="input" value="CA">
+    </div>
+    <div class="field"><label>First Name</label><!-- billing: Form.ErrorMessage 있음(:175,:190). 스키마상 optional 이라 실제로 오류가 나지 않아 빈 영역 -->
+      <input class="input" value="Jane">
+    </div>
+    <div class="field"><label>Last Name</label><!-- billing: Form.ErrorMessage 있음(:175,:190). 스키마상 optional 이라 실제로 오류가 나지 않아 빈 영역 -->
+      <input class="input" value="Doe">
+    </div>
+    <div class="field"><label>Company <span class="opt">(Optional)</span></label>
+      <input class="input" value="">
+    </div>
+    <div class="field"><label>Phone <span class="opt">(Optional)</span></label>
+      <input class="input" value="+1 555 0100">
+    </div>
+  </div>
+  <footer>
+    <a class="btn sm" href="order-detail.html#default" data-not-scene="leave-prompt">Cancel</a>
+    <button class="btn sm" type="button" data-scene="leave-prompt">Cancel</button>
+    <a class="btn primary sm" href="order-detail.html#toast-success" data-scene="default leave-prompt" title="성공 토스트: Order billing address updated.">Save</a>
+    <button class="btn primary sm" type="button" data-scene="required-error" disabled title="billing 은 폼 오류가 있으면 Save 비활성(:241)">Save</button>
+    <button class="btn primary sm" type="button" data-scene="failed">Save</button>
+  </footer>
+</div>
+<div class="toast error" role="status" data-scene="failed"><span class="ti"></span><div>An unknown error occurred.</div></div>
+<div class="prompt" role="alertdialog" data-scene="leave-prompt">
+  <div class="p-body"><div class="h3">Are you sure you want to leave this form?</div><p class="subtle">You have unsaved changes that will be lost if you exit this form.</p></div>
+  <div class="p-foot"><button class="btn sm" type="button" data-goto="default">Cancel</button><a class="btn primary sm" href="order-detail.html#default">Continue</a></div>
+</div>
+<script src="assets/scenes.js"></script>
+</body>
+</html>

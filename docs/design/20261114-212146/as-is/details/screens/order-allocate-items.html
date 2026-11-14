@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>order-allocate-items</title>
+<link rel="stylesheet" href="assets/medusa.css">
+</head>
+<body data-scenes="default:위치 미선택(입력·제출 비활성)|location-selected:위치 선택|over-allocation:초과 할당|kit-expanded:키트 펼침|unallocated-error:미할당 오류|loading:로딩(빈 모달)|partial-failure:부분 실패(상세+토스트)"
+  data-note="근거: order-allocate-items/order-allocate-items.tsx, components/order-create-fulfillment-form/order-allocate-items-form.tsx·order-allocate-items-item.tsx, en.json orders.allocateItems.*. 성공 시 토스트 없이 상세(order-detail.html#default)로 복귀(toast.created 문구는 정의만 있고 미사용). 부분 실패 토스트는 상세로 이동한 뒤 뜬다(form.tsx:122-135). 예시 가정(미확인): Medusa Sweatpants 를 재고 키트(Sweatpants Body + Drawstring, 각 1개)로 두었고 재고 수치는 예시. 품목 제목 아래 줄은 item.title(=상품명)이라 상품명이 두 번 보인다. 키트 펼침 화살표는 열리면 -90도 회전(▸).">
+
+<!-- 부모 페이지(주문 상세)를 단순화한 셸. 경로형 하위 화면이 그 위에 열린다. -->
+<div class="shell" aria-hidden="true">
+  <aside class="sidebar">
+    <div class="store"><span class="avatar">M</span><b>Medusa Store</b></div>
+    <nav>
+      <a href="order-list.html#default" class="active"><span class="ic">▤</span>Orders</a>
+      <a href="#" title="범위 밖"><span class="ic">▣</span>Products</a>
+      <a href="#" title="범위 밖"><span class="ic">▦</span>Inventory</a>
+      <a href="#" title="범위 밖"><span class="ic">◉</span>Customers</a>
+      <a href="#" title="범위 밖"><span class="ic">%</span>Promotions</a>
+      <a href="#" title="범위 밖"><span class="ic">$</span>Price Lists</a>
+    </nav>
+    <div class="bottom"><nav><a href="#" title="범위 밖"><span class="ic">⚙</span>Settings</a></nav></div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumbs"><a href="order-list.html#default">Orders</a><span>›</span><b>#1042</b></div>
+      <span class="muted">🔔</span>
+    </div>
+    <div class="content">
+      <div class="two-col">
+        <div class="col-main">
+          <div class="container">
+            <div class="sec between"><div><div class="h2">#1042</div><div class="small subtle">10 Nov 2026, 14:32 from Default Sales Channel</div></div><div class="row"><span class="badge">Not paid</span><span class="badge orange">Not fulfilled</span></div></div>
+          </div>
+          <div class="container"><div class="sec"><div class="h2">Summary</div></div><div class="sec stack"><div class="sk" style="height:12px;width:60%"></div><div class="sk" style="height:12px;width:40%"></div><div class="sk" style="height:12px;width:70%"></div></div></div>
+          <div class="container"><div class="sec"><div class="h2">Payments</div></div><div class="sec"><div class="sk" style="height:12px;width:50%"></div></div></div>
+        </div>
+        <div class="col-side">
+          <div class="container"><div class="sec"><div class="h2">Customer</div></div><div class="sec stack"><div class="sk" style="height:12px;width:60%"></div><div class="sk" style="height:12px;width:80%"></div></div></div>
+          <div class="container"><div class="sec"><div class="h2">Activity</div></div><div class="sec"><div class="sk" style="height:12px;width:70%"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- partial-failure: 모달은 이미 닫히고 상세 위 오류 토스트 (form.tsx:122-135) -->
+<div class="toast error" data-scene="partial-failure" role="status">
+  <span class="ti"></span>
+  <div><div style="font-weight:500">Error</div><div class="subtle">Failed to allocate following items: iitem_01JBODY7Q2X</div></div>
+</div>
+
+<div class="overlay" data-not-scene="partial-failure"></div>
+<div class="focus-modal" data-scene="loading" aria-label="loading"></div>
+
+<form class="focus-modal" data-not-scene="loading partial-failure" onsubmit="return false">
+  <header>
+    <div class="row">
+      <a class="btn icon ghost" href="order-detail.html#default" aria-label="Close">✕</a>
+      <span class="kbd">esc</span>
+    </div>
+  </header>
+
+  <div class="body">
+    <div class="inner" style="max-width:736px;gap:32px">
+      <div class="h1">Allocate order items</div>
+
+      <div style="padding-top:32px;border-top:1px dashed var(--border-strong)">
+        <!-- Location Select (form.tsx:238-279) -->
+        <div class="row" style="gap:12px">
+          <div class="grow">
+            <div class="h3">Location</div>
+            <div class="subtle small">Choose which location you want to allocate from.</div>
+          </div>
+          <div class="grow">
+            <div class="select row" style="background-color:#fff;align-items:center;padding-right:24px">
+              <span data-scene="default">&nbsp;</span>
+              <span data-not-scene="default">European Warehouse</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Items to allocate + 검색 (form.tsx:281-319) -->
+        <div style="margin-top:32px;padding-top:32px;border-top:1px dashed var(--border-strong)">
+          <div class="row">
+            <div class="grow">
+              <div class="h3">Items to allocate</div>
+              <div class="subtle small">Select the number of items you wish to allocate</div>
+            </div>
+            <div class="grow"><input class="input" type="search" placeholder="Search items" aria-label="Search items"></div>
+          </div>
+
+          <!-- allocationError Alert, dismissible (form.tsx:302-306) -->
+          <div class="alert error between" data-scene="unallocated-error" style="margin:8px 0 16px">
+            <span>There are unallocated items.</span><span class="muted">✕</span>
+          </div>
+
+          <div class="table-wrap">
+          <div class="stack" style="gap:4px;min-width:720px">
+
+            <!-- 단일 재고 품목 (item.tsx:102-235) -->
+            <div style="margin:8px 0;border-radius:12px;background:var(--bg-subtle);box-shadow:var(--shadow-border)">
+              <div class="row" style="gap:12px;padding:12px">
+                <div class="row grow" style="gap:12px">
+                  <span data-scene="over-allocation" style="color:var(--fg-error)" title="ExclamationCircleSolid">⊘</span>
+                  <span class="thumb"></span>
+                  <div>
+                    <div><span style="font-weight:500">Medusa T-Shirt</span><span class="subtle"> (SHIRT-L-BLACK)</span></div>
+                    <div class="subtle">Medusa T-Shirt</div>
+                  </div>
+                </div>
+                <div class="between grow" style="gap:12px">
+                  <div class="row" style="gap:12px">
+                    <span style="width:1px;height:12px;background:var(--border-strong)"></span>
+                    <div class="stack small" style="gap:0"><span class="subtle" style="font-weight:500">Available</span>
+                      <span class="muted">
+                        <span data-scene="default">-</span>
+                        <span data-scene="location-selected kit-expanded unallocated-error">100</span><span data-scene="location-selected kit-expanded" style="margin-left:4px;color:var(--fg-error)">-2</span>
+                        <span data-scene="over-allocation">1</span><span data-scene="over-allocation" style="margin-left:4px;color:var(--fg-error)">-2</span>
+                      </span>
+                    </div>
+                  </div>
+                  <div class="row" style="gap:12px">
+                    <span style="width:1px;height:12px;background:var(--border-strong)"></span>
+                    <div class="stack small" style="gap:0"><span class="subtle" style="font-weight:500">In stock</span>
+                      <span class="muted"><span data-scene="default">-</span><span data-scene="location-selected kit-expanded unallocated-error">120</span><span data-scene="over-allocation">1</span></span>
+                    </div>
+                  </div>
+                  <div class="row small subtle" style="gap:8px;margin-right:8px">
+                    <span style="width:1px;height:12px;background:var(--border-strong)"></span>
+                    <!-- disabled={!locationId} (item.tsx:206) -->
+                    <input class="input" style="width:46px;text-align:right;border-radius:8px" disabled data-scene="default" aria-label="quantity">
+                    <input class="input" style="width:46px;text-align:right;border-radius:8px;background:#fff" value="2" data-scene="location-selected kit-expanded over-allocation" aria-label="quantity">
+                    <input class="input" style="width:46px;text-align:right;border-radius:8px;background:#fff" value="" data-scene="unallocated-error" aria-label="quantity">
+                    / 2 qty.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 재고 키트 품목: Available/In stock 없이 수량만, Component 아이콘 (item.tsx:121-123,138,237-254) -->
+            <div style="margin:8px 0;border-radius:12px;background:var(--bg-subtle);box-shadow:var(--shadow-border)">
+              <div class="row" style="gap:12px;padding:12px">
+                <div class="row grow" style="gap:12px">
+                  <span class="thumb"></span>
+                  <div>
+                    <div><span style="font-weight:500">Medusa Sweatpants</span><span class="subtle"> (SWEAT-M-GRAY)</span><span class="muted" style="margin-left:8px" title="Component">⧉</span></div>
+                    <div class="subtle">Medusa Sweatpants</div>
+                  </div>
+                </div>
+                <div class="row grow" style="gap:12px;justify-content:flex-end">
+                  <div class="row small subtle" style="gap:8px;margin-right:8px">
+                    <span style="width:1px;height:12px;background:var(--border-strong)"></span>
+                    <input class="input" style="width:46px;text-align:right;border-radius:8px" disabled data-scene="default" aria-label="quantity">
+                    <input class="input" style="width:46px;text-align:right;border-radius:8px;background:#fff" value="1" data-not-scene="default" aria-label="quantity">
+                    / 1 qty.
+                  </div>
+                </div>
+              </div>
+              <div style="padding:8px 16px;border-top:1px dashed var(--border-strong)">
+                <a href="#kit-expanded" data-goto="kit-expanded" class="row small muted" data-not-scene="kit-expanded" style="color:var(--fg-muted)">▾ Consists of 2x inventory items</a>
+                <a href="#location-selected" data-goto="location-selected" class="row small muted" data-scene="kit-expanded" style="color:var(--fg-muted)">▸ Consists of 2x inventory items</a>
+              </div>
+              <!-- isOpen 하위 행 (item.tsx:256-366) -->
+              <div data-scene="kit-expanded">
+                <div class="row small" style="gap:12px;padding:16px;border-top:1px dashed var(--border-strong)">
+                  <div class="grow stack" style="gap:0"><span class="subtle">Sweatpants Body</span><span class="muted">Requires 1 per variant</span></div>
+                  <div class="between grow">
+                    <div class="row" style="gap:12px"><span style="width:1px;height:12px;background:var(--border-strong)"></span><div class="stack" style="gap:0"><span class="subtle" style="font-weight:500">Available</span><span class="muted">40<span style="margin-left:4px;color:var(--fg-error)">-1</span></span></div></div>
+                    <div class="row" style="gap:12px"><span style="width:1px;height:12px;background:var(--border-strong)"></span><div class="stack" style="gap:0"><span class="subtle" style="font-weight:500">In stock</span><span class="muted">45</span></div></div>
+                    <div class="row subtle" style="gap:8px;margin-right:4px"><span style="width:1px;height:12px;background:var(--border-strong)"></span><input class="input" style="width:46px;text-align:right;border-radius:8px;background:#fff" value="1" aria-label="quantity">/ 1 qty.</div>
+                  </div>
+                </div>
+                <div class="row small" style="gap:12px;padding:16px;border-top:1px dashed var(--border-strong)">
+                  <div class="grow stack" style="gap:0"><span class="subtle">Drawstring</span><span class="muted">Requires 1 per variant</span></div>
+                  <div class="between grow">
+                    <div class="row" style="gap:12px"><span style="width:1px;height:12px;background:var(--border-strong)"></span><div class="stack" style="gap:0"><span class="subtle" style="font-weight:500">Available</span><span class="muted">200<span style="margin-left:4px;color:var(--fg-error)">-1</span></span></div></div>
+                    <div class="row" style="gap:12px"><span style="width:1px;height:12px;background:var(--border-strong)"></span><div class="stack" style="gap:0"><span class="subtle" style="font-weight:500">In stock</span><span class="muted">210</span></div></div>
+                    <div class="row subtle" style="gap:8px;margin-right:4px"><span style="width:1px;height:12px;background:var(--border-strong)"></span><input class="input" style="width:46px;text-align:right;border-radius:8px;background:#fff" value="1" aria-label="quantity">/ 1 qty.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <a class="btn sm" href="order-detail.html#default">Cancel</a>
+    <!-- disabled={!selectedLocationId || disableSubmit} (form.tsx:332-339) -->
+    <button class="btn sm" disabled data-scene="default over-allocation">Allocate items</button>
+    <a class="btn sm primary" href="order-detail.html#default" data-scene="location-selected kit-expanded">Allocate items</a>
+    <a class="btn sm primary" href="#unallocated-error" data-goto="unallocated-error" data-scene="unallocated-error">Allocate items</a>
+  </footer>
+</form>
+
+<script src="assets/scenes.js"></script>
+</body>
+</html>

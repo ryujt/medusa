@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>order-list</title>
+<link rel="stylesheet" href="assets/medusa.css">
+<style>
+  .flag { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 3px; font-size: 8px; font-weight: 600; background: var(--bg-disabled); color: var(--fg-subtle); box-shadow: var(--shadow-border); }
+  .fchip { display: inline-flex; align-items: stretch; height: 28px; border-radius: 6px; box-shadow: var(--shadow-border); background: var(--bg-field); overflow: hidden; }
+  .fchip > span { display: inline-flex; align-items: center; padding: 0 8px; border-right: 1px solid var(--border-base); font-weight: 500; }
+  .fchip > span:last-child { border-right: 0; }
+  .search { width: 200px; height: 28px; }
+</style>
+</head>
+<body data-scenes="default:목록|loading:로딩(TableSkeleton)|empty:주문 없음(No records)|no-results:필터 결과 없음|export-started:내보내기 시작 토스트|access-denied:권한 없음(order:read)|error:라우트 오류(ErrorBoundary)"
+      data-note="근거: order-list-table.tsx(카드 헤더·Export·_DataTable), use-order-table-columns.tsx(열 순서), data-table.tsx(로딩/빈 상태 분기), ui table.tsx Pagination, error-boundary.tsx, route-permission-guard.tsx. 정렬 메뉴 열린 상태·필터 추가 팝오버는 장면으로 만들지 않음. 국기는 react-country-flag SVG 대신 ISO 코드 상자로 대체. view_configurations 플래그 ON 시의 ConfigurableDataTable 화면은 미재현. error 장면은 500 응답 기준 문구(그 외 상태는 'An error occurred')." >
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="store"><span class="avatar">M</span><div><b>Medusa Store</b></div></div>
+    <nav>
+      <a href="#"><span class="ic">⌕</span>Search <span class="kbd" style="margin-left:auto">⌘K</span></a>
+    </nav>
+    <nav style="border-top:1px dashed var(--border-strong)">
+      <a class="active" href="order-list.html#default"><span class="ic">▣</span>Orders</a>
+      <a href="#"><span class="ic">▤</span>Products</a>
+      <a href="#"><span class="ic">▥</span>Inventory</a>
+      <a href="#"><span class="ic">◉</span>Customers</a>
+      <a href="#"><span class="ic">%</span>Promotions</a>
+      <a href="#"><span class="ic">$</span>Price Lists</a>
+    </nav>
+    <div class="bottom"><nav><a href="#"><span class="ic">⚙</span>Settings</a></nav></div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="crumbs"><b>Orders</b></div>
+      <div class="row muted">⌂</div>
+    </div>
+
+    <div class="content">
+      <!-- 목록 카드: routes/orders/order-list/components/order-list-table/order-list-table.tsx:54-80 -->
+      <div class="container" data-not-scene="access-denied error">
+        <div class="between" style="padding:16px 24px">
+          <h1 class="h1">Orders</h1>
+          <a class="btn sm" href="order-export.html#default">Export</a>
+        </div>
+
+        <!-- 로딩: data-table.tsx:44-54 TableSkeleton(search, filters, orderBy, pagination, rowCount 20) -->
+        <div data-scene="loading" style="border-top:1px solid var(--border-base)">
+          <div class="toolbar" style="padding:16px 24px">
+            <div class="sk" style="width:90px;height:28px"></div>
+            <div class="row"><div class="sk" style="width:160px;height:28px"></div><div class="sk" style="width:28px;height:28px"></div></div>
+          </div>
+          <div class="stack" style="padding:0 24px 16px">
+            <div class="sk" style="height:32px"></div>
+            <div class="sk" style="height:32px"></div>
+            <div class="sk" style="height:32px"></div>
+            <div class="sk" style="height:32px"></div>
+            <div class="sk" style="height:32px"></div>
+            <div class="sk" style="height:32px"></div>
+            <div class="small muted" style="text-align:center">(rowCount = 20, 이하 생략)</div>
+          </div>
+          <div class="pager"><div class="sk" style="width:140px;height:20px"></div><div class="sk" style="width:180px;height:20px"></div></div>
+        </div>
+
+        <!-- 빈 상태: data-table.tsx:56-69 NoRecords, 툴바·페이지네이션 없음. 메시지 orders.list.noRecordsMessage -->
+        <div data-scene="empty" style="border-top:1px solid var(--border-base)">
+          <div class="empty" style="padding:0;height:150px">
+            <div class="muted" style="font-size:16px">ⓘ</div>
+            <b style="color:var(--fg-base)">No records</b>
+            <span class="muted">Your orders will show up here.</span>
+          </div>
+        </div>
+
+        <!-- 툴바: data-table-query.tsx (왼쪽 필터 max 60%, 오른쪽 Search + 정렬 아이콘) -->
+        <div data-scene="default export-started no-results" style="border-top:1px solid var(--border-base)">
+          <div class="toolbar" style="padding:16px 24px;align-items:flex-start">
+            <div class="row" style="flex-wrap:wrap;max-width:60%">
+              <span data-scene="no-results" class="fchip"><span class="subtle">Sales Channel</span><span class="muted">is</span><span>Wholesale</span><span class="muted">✕</span></span>
+              <span class="btn sm ghost" style="box-shadow:var(--shadow-border)">Add filter</span>
+              <span data-scene="no-results" class="btn sm ghost">Clear all</span>
+            </div>
+            <div class="row">
+              <input class="input search" placeholder="Search" aria-label="Search">
+              <button class="btn icon" title="Sort: Display ID / Created / Updated, Ascending / Descending">⇅</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 표: use-order-table-columns.tsx:58-143 (Order, Date, Customer*, Sales Channel*, Payment, Fulfillment, Order Total, 국가) *권한 있을 때만 -->
+        <div class="table-wrap" data-scene="default export-started" style="border-top:1px solid var(--border-base)">
+          <table class="table">
+            <thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Sales Channel</th><th>Payment</th><th>Fulfillment</th><th style="text-align:right">Order Total</th><th></th></tr></thead>
+            <tbody>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1042</td><td title="Nov 10, 2026 2:32 PM">Nov 10, 2026</td><td>Jane Doe</td><td>Default Sales Channel</td><td><span class="status green">Captured</span></td><td><span class="status red">Not fulfilled</span></td><td style="text-align:right">$100.00</td><td><span class="flag" title="country display_name">US</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1041</td><td title="Nov 10, 2026 2:32 PM">Nov 10, 2026</td><td>Liam Smith</td><td>Default Sales Channel</td><td><span class="status orange">Authorized</span></td><td><span class="status red">Not fulfilled</span></td><td style="text-align:right">$64.00</td><td><span class="flag" title="country display_name">US</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1040</td><td title="Nov 9, 2026 2:32 PM">Nov 9, 2026</td><td>noah@example.com</td><td>Default Sales Channel</td><td><span class="status green">Captured</span></td><td><span class="status green">Shipped</span></td><td style="text-align:right">$128.50</td><td><span class="flag" title="country display_name">DE</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1039</td><td title="Nov 9, 2026 2:32 PM">Nov 9, 2026</td><td>Emma Jones</td><td>Default Sales Channel</td><td><span class="status green">Captured</span></td><td><span class="status green">Delivered</span></td><td style="text-align:right">$45.00</td><td><span class="flag" title="country display_name">GB</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1038</td><td title="Nov 8, 2026 2:32 PM">Nov 8, 2026</td><td>Olivia Brown</td><td>Default Sales Channel</td><td><span class="status orange">Partially refunded</span></td><td><span class="status orange">Partially returned</span></td><td style="text-align:right">$210.00</td><td><span class="flag" title="country display_name">US</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1037</td><td title="Nov 8, 2026 2:32 PM">Nov 8, 2026</td><td>Ava Wilson</td><td>Default Sales Channel</td><td><span class="status red">Refunded</span></td><td><span class="status green">Returned</span></td><td style="text-align:right"><s class="muted">$80.00</s></td><td><span class="flag" title="country display_name">FR</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1036</td><td title="Nov 7, 2026 2:32 PM">Nov 7, 2026</td><td>Lucas Martin</td><td>Default Sales Channel</td><td><span class="status green">Captured</span></td><td><span class="status orange">Partially fulfilled</span></td><td style="text-align:right">$150.00</td><td><span class="flag" title="country display_name">DE</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1035</td><td title="Nov 7, 2026 2:32 PM">Nov 7, 2026</td><td>Mia Garcia</td><td>Default Sales Channel</td><td><span class="status red">Not paid</span></td><td><span class="status red">Not fulfilled</span></td><td style="text-align:right">$39.00</td><td><span class="flag" title="country display_name">ES</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1034</td><td title="Nov 6, 2026 2:32 PM">Nov 6, 2026</td><td>Ethan Lee</td><td>Default Sales Channel</td><td><span class="status red">Canceled</span></td><td><span class="status red">Canceled</span></td><td style="text-align:right">$72.00</td><td><span class="flag" title="country display_name">US</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1033</td><td title="Nov 6, 2026 2:32 PM">Nov 6, 2026</td><td>Sophia Kim</td><td>Default Sales Channel</td><td><span class="status green">Captured</span></td><td><span class="status green">Fulfilled</span></td><td style="text-align:right">$99.00</td><td><span class="flag" title="country display_name">US</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1032</td><td title="Nov 5, 2026 2:32 PM">Nov 5, 2026</td><td>James Taylor</td><td>Default Sales Channel</td><td><span class="status green">Captured</span></td><td><span class="status green">Shipped</span></td><td style="text-align:right">$54.00</td><td><span class="flag" title="country display_name">GB</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1031</td><td title="Nov 5, 2026 2:32 PM">Nov 5, 2026</td><td>Isabella Clark</td><td>Default Sales Channel</td><td><span class="status orange">Awaiting</span></td><td><span class="status red">Not fulfilled</span></td><td style="text-align:right">$120.00</td><td><span class="flag" title="country display_name">US</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1030</td><td title="Nov 4, 2026 2:32 PM">Nov 4, 2026</td><td>Benjamin Hall</td><td>Default Sales Channel</td><td><span class="status green">Captured</span></td><td><span class="status green">Delivered</span></td><td style="text-align:right">$33.00</td><td><span class="flag" title="country display_name">DK</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1029</td><td title="Nov 4, 2026 2:32 PM">Nov 4, 2026</td><td>Charlotte Allen</td><td>Default Sales Channel</td><td><span class="status green">Captured</span></td><td><span class="status green">Delivered</span></td><td style="text-align:right">$88.00</td><td><span class="flag" title="country display_name">SE</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1028</td><td title="Nov 3, 2026 2:32 PM">Nov 3, 2026</td><td>Henry Young</td><td>Default Sales Channel</td><td><span class="status orange">Requires action</span></td><td><span class="status red">Not fulfilled</span></td><td style="text-align:right">$61.00</td><td><span class="flag" title="country display_name">US</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1027</td><td title="Nov 3, 2026 2:32 PM">Nov 3, 2026</td><td>Amelia King</td><td>Default Sales Channel</td><td><span class="status green">Captured</span></td><td><span class="status green">Shipped</span></td><td style="text-align:right">$140.00</td><td><span class="flag" title="country display_name">DE</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1026</td><td title="Nov 2, 2026 2:32 PM">Nov 2, 2026</td><td>Jack Wright</td><td>Default Sales Channel</td><td><span class="status green">Captured</span></td><td><span class="status green">Delivered</span></td><td style="text-align:right">$25.00</td><td><span class="flag" title="country display_name">US</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1025</td><td title="Nov 2, 2026 2:32 PM">Nov 2, 2026</td><td>Harper Scott</td><td>Default Sales Channel</td><td><span class="status green">Captured</span></td><td><span class="status green">Delivered</span></td><td style="text-align:right">$190.00</td><td><span class="flag" title="country display_name">FR</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1024</td><td title="Nov 1, 2026 2:32 PM">Nov 1, 2026</td><td>Daniel Green</td><td>Default Sales Channel</td><td><span class="status orange">Partially captured</span></td><td><span class="status orange">Partially shipped</span></td><td style="text-align:right">$76.00</td><td><span class="flag" title="country display_name">US</span></td></tr>
+          <tr class="click" onclick="location.href='order-detail.html#default'"><td class="subtle">#1023</td><td title="Nov 1, 2026 2:32 PM">Nov 1, 2026</td><td>Evelyn Baker</td><td>Default Sales Channel</td><td><span class="status green">Captured</span></td><td><span class="status green">Delivered</span></td><td style="text-align:right">$58.00</td><td><span class="flag" title="country display_name">GB</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 결과 없음: data-table-root.tsx:139-314 표 대신 NoResults(h-400), 페이지네이션은 유지 -->
+        <div data-scene="no-results" style="border-top:1px solid var(--border-base);border-bottom:1px solid var(--border-base)">
+          <div class="empty" style="height:400px">
+            <div class="muted" style="font-size:16px">⌕</div>
+            <b style="color:var(--fg-base)">No results</b>
+            <span class="subtle">Try changing the filters or search query</span>
+          </div>
+        </div>
+
+        <!-- 페이지네이션: ui/src/components/table/table.tsx:178-216 -->
+        <div class="pager" data-scene="default export-started">
+          <span><b>1</b> <span class="muted">—</span> <b>20 of 57 results</b></span>
+          <div class="row"><b>1 of 3 pages</b><button class="btn ghost" disabled style="background:transparent">Prev</button><button class="btn ghost">Next</button></div>
+        </div>
+        <div class="pager" data-scene="no-results">
+          <span><b>0</b> <span class="muted">—</span> <b>0 of 0 results</b></span>
+          <div class="row"><b>1 of 1 pages</b><button class="btn ghost" disabled style="background:transparent">Prev</button><button class="btn ghost" disabled style="background:transparent">Next</button></div>
+        </div>
+      </div>
+
+      <!-- AccessDenied: route-permission-guard.tsx:150-176 (route-map /orders handle.permissions "order:read") -->
+      <div data-scene="access-denied" class="row" style="min-height:60vh;justify-content:center;padding:16px">
+        <div class="container" style="max-width:448px;width:100%">
+          <div class="stack" style="align-items:center;text-align:center;padding:32px 24px;gap:16px">
+            <div style="width:48px;height:48px;border-radius:999px;background:var(--bg-subtle);display:grid;place-items:center" class="muted">!</div>
+            <div class="stack" style="gap:4px">
+              <h2 class="h2">Access Denied</h2>
+              <p class="subtle">You don't have permission to access this page.</p>
+            </div>
+            <p class="small muted">Required permission: order:read</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ErrorBoundary: error-boundary.tsx:117-130 (/orders errorElement) -->
+      <div data-scene="error" class="row" style="min-height:calc(100vh - 81px);justify-content:center">
+        <div class="stack" style="align-items:center;gap:12px">
+          <div class="subtle" style="font-size:16px">ⓘ</div>
+          <b>500 - Internal server error</b>
+          <span class="muted" style="text-align:center">An unexpected error occurred on the server. Please try again later.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Export 성공 토스트: order-export.tsx:36-39 toast.info -->
+<div class="toast info" data-scene="export-started">
+  <span class="ti"></span>
+  <div class="grow">
+    <b>Export started</b>
+    <div class="subtle">You will be notified when the export is ready.</div>
+  </div>
+  <a href="#default" class="muted" aria-label="Close">✕</a>
+</div>
+
+<script src="assets/scenes.js"></script>
+</body>
+</html>

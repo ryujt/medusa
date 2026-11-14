@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>order-metadata</title>
+<link rel="stylesheet" href="assets/medusa.css">
+<style>
+  .mgrid { border-radius: 8px; box-shadow: var(--shadow-border); background: var(--bg-base); }
+  .mrow { position: relative; display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--border-base); }
+  .mrow.head { border-top: 0; background: var(--bg-subtle); border-radius: 8px 8px 0 0; font-weight: 500; color: var(--fg-subtle); }
+  .mrow > * { padding: 6px 8px; min-width: 0; }
+  .mrow > * + * { border-left: 1px solid var(--border-base); }
+  .mrow input { border: 0; outline: 0; background: transparent; font: inherit; color: var(--fg-base); width: 100%; padding: 6px 8px; }
+  .mrow input::placeholder { color: var(--fg-muted); }
+  .mrow input[disabled] { color: var(--fg-disabled); background: var(--bg-base); }
+  .mrow > .cell { padding: 0; }
+  .mrow .trig { position: absolute; top: 0; bottom: 0; right: -10px; margin: auto; width: 20px; height: 20px; border-radius: 4px; background: var(--bg-base); box-shadow: var(--shadow-border); display: none; place-items: center; font-size: 12px; cursor: pointer; }
+  .mrow:hover .trig, .mrow .trig.open { display: grid; }
+  .mrow.disabled .trig { display: none !important; }
+  .tip { position: absolute; left: 50%; top: -34px; transform: translateX(-50%); background: var(--button-inverted); color: #fff; font-size: 12px; padding: 4px 8px; border-radius: 6px; white-space: nowrap; z-index: 5; }
+  .inline-tip { display: flex; gap: 8px; padding: 8px 12px; border-radius: 8px; box-shadow: var(--shadow-border); background: var(--bg-base); color: var(--fg-subtle); }
+  .inline-tip .bar { width: 4px; border-radius: 2px; background: var(--tag-orange-icon); flex: none; }
+  .drawer > footer.split { justify-content: space-between; }
+</style>
+</head>
+<body data-scenes="default:메타데이터 편집|loading:로딩(스켈레톤)|row-menu:행 ⋯ 메뉴|non-primitive:비원시값 행 비활성|failed:저장 실패 토스트|leave-prompt:이탈 프롬프트(추가)"
+      data-note="근거: components/forms/metadata-form/metadata-form.tsx 전체, order-metadata.tsx(fields id,metadata, useUpdateOrder). ⋯ 트리거는 행에 마우스를 올릴 때만 보이고 비활성 행에는 없다. 비활성 행 값은 객체 '{ ... }', 배열 '[ ... ]' 로 표시, 툴팁은 hover 시. 로딩 스켈레톤 높이 클래스가 h-[148ox](오타)라 실제 렌더 높이는 미확인. 실패 토스트 문구는 서버 error.message 그대로(예시 미확인). 이탈 프롬프트는 계약 외 추가 장면(RouteDrawer.Form 사용으로 존재). 저장 요청 중에는 Cancel 비활성·Save 로딩(미재현).">
+
+<div class="shell" aria-hidden="true">
+  <aside class="sidebar">
+    <div class="store"><span class="avatar">M</span><div><b>Medusa Store</b></div></div>
+    <nav><a href="#"><span class="ic">⌕</span>Search <span class="kbd" style="margin-left:auto">⌘K</span></a></nav>
+    <nav style="border-top:1px dashed var(--border-strong)">
+      <a class="active" href="order-list.html#default"><span class="ic">▣</span>Orders</a>
+      <a href="#"><span class="ic">▤</span>Products</a>
+      <a href="#"><span class="ic">▥</span>Inventory</a>
+      <a href="#"><span class="ic">◉</span>Customers</a>
+      <a href="#"><span class="ic">%</span>Promotions</a>
+      <a href="#"><span class="ic">$</span>Price Lists</a>
+    </nav>
+    <div class="bottom"><nav><a href="#"><span class="ic">⚙</span>Settings</a></nav></div>
+  </aside>
+  <div class="main">
+    <div class="topbar"><div class="crumbs"><a href="order-list.html#default">Orders</a><span>›</span><b>#1042</b></div><div class="row muted">⌂</div></div>
+    <!-- 부모 화면: order-detail.html#default (단순화 셸) -->
+    <div class="content" style="opacity:.85">
+      <div class="two-col">
+        <div class="col-main">
+          <div class="container"><div class="sec between"><div><h1 class="h1">#1042</h1><p class="small muted">Nov 10, 2026 2:32 PM from Default Sales Channel</p></div><div class="row"><span class="badge green">Captured</span><span class="badge red">Not fulfilled</span></div></div></div>
+          <div class="container"><div class="sec"><h2 class="h2">Summary</h2></div><div class="sec stack"><div class="sk" style="height:40px"></div><div class="sk" style="height:40px"></div></div><div class="kv"><span>Order total</span><span>$100.00</span></div></div>
+          <div class="container"><div class="sec"><h2 class="h2">Payments</h2></div><div class="sec"><div class="sk" style="height:24px"></div></div></div>
+          <div class="container"><div class="sec"><h2 class="h2">Unfulfilled Items</h2></div><div class="sec"><div class="sk" style="height:40px"></div></div></div>
+        </div>
+        <div class="col-side">
+          <div class="container"><div class="sec"><h2 class="h2">Customer</h2></div><div class="kv"><span>Contact</span><span>jane@example.com<br>+1 555 0100</span></div><div class="kv"><span>Shipping address</span><span>12 Market St, Apt 4<br>94103 San Francisco, CA, US</span></div></div>
+          <div class="container"><div class="sec"><h2 class="h2">Activity</h2></div><div class="sec"><div class="sk" style="height:24px"></div></div></div>
+          <div class="container"><div class="sec between"><div class="row"><h2 class="h2">Metadata</h2><span class="badge">2 keys</span></div><span class="muted">↗</span></div></div>
+          <div class="container"><div class="sec between"><div class="row"><h2 class="h2">JSON</h2><span class="badge">48 keys</span></div><span class="muted">⤢</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<a class="overlay" href="order-detail.html#default" aria-label="Close"></a>
+
+<div class="drawer" role="dialog" aria-label="Edit Metadata">
+  <header>
+    <h2 class="h2">Edit Metadata</h2>
+    <div class="row">
+      <span class="kbd">esc</span>
+      <a class="btn icon ghost" href="order-detail.html#default" aria-label="Close">✕</a>
+    </div>
+  </header>
+
+  <!-- 로딩: metadata-form.tsx:331-345 PlaceholderInner -->
+  <div class="body" data-scene="loading">
+    <div class="sk" style="height:148px;border-radius:8px"></div>
+  </div>
+  <footer data-scene="loading">
+    <div class="sk" style="width:48px;height:28px;border-radius:6px"></div>
+    <div class="sk" style="width:48px;height:28px;border-radius:6px"></div>
+  </footer>
+
+  <!-- 폼: metadata-form.tsx:145-311 -->
+  <div class="body" data-not-scene="loading" style="gap:32px">
+    <div class="mgrid">
+      <div class="mrow head"><div>Key</div><div>Value</div></div>
+
+      <div class="mrow">
+        <div class="cell"><input value="gift_wrap" placeholder="Key" aria-label="Key"></div>
+        <div class="cell"><input value="true" placeholder="Value" aria-label="Value"></div>
+        <span class="trig" data-not-scene="row-menu" data-goto="row-menu" title="⋯">⋮</span>
+        <span class="trig open" data-scene="row-menu">⋮</span>
+        <!-- metadata-form.tsx:242-265 -->
+        <div class="menu" data-scene="row-menu" style="top:28px;right:-10px">
+          <a href="#default" data-goto="default"><span class="muted">↑</span>Insert row above</a>
+          <a href="#default" data-goto="default"><span class="muted">↓</span>Insert row below</a>
+          <div class="sep"></div>
+          <a href="#default" data-goto="default"><span class="muted">⌫</span>Delete row</a>
+        </div>
+      </div>
+
+      <div class="mrow">
+        <div class="cell"><input value="source" placeholder="Key" aria-label="Key"></div>
+        <div class="cell"><input value="instagram" placeholder="Value" aria-label="Value"></div>
+        <span class="trig" data-goto="row-menu">⋮</span>
+      </div>
+
+      <!-- 비원시값 행: getDefaultValues disabled=true, 값 자리표시 "{ ... }" / "[ ... ]" (metadata-form.tsx:166-174) -->
+      <div class="mrow disabled" data-scene="non-primitive" title="This row is disabled because it contains non-primitive data.">
+        <div class="cell"><input value="utm" disabled aria-label="Key"></div>
+        <div class="cell"><input value="{ ... }" disabled aria-label="Value"></div>
+        <span class="tip">This row is disabled because it contains non-primitive data.</span>
+      </div>
+      <div class="mrow disabled" data-scene="non-primitive" title="This row is disabled because it contains non-primitive data.">
+        <div class="cell"><input value="tags" disabled aria-label="Key"></div>
+        <div class="cell"><input value="[ ... ]" disabled aria-label="Value"></div>
+      </div>
+
+      <!-- 이탈 프롬프트 장면: 사용자가 값을 추가해 폼이 dirty 상태 -->
+      <div class="mrow" data-scene="leave-prompt">
+        <div class="cell"><input value="note" aria-label="Key"></div>
+        <div class="cell"><input value="" placeholder="Value" aria-label="Value"></div>
+      </div>
+    </div>
+
+    <!-- metadata-form.tsx:272-279 InlineTip warning -->
+    <div class="inline-tip" data-scene="non-primitive">
+      <span class="bar"></span>
+      <div><b style="color:var(--fg-base)">Some rows are disabled: </b>This object contains non-primitive metadata, such as arrays or objects, that can't be edited here. To edit the disabled rows, use the API directly.</div>
+    </div>
+  </div>
+
+  <footer class="split" data-not-scene="loading">
+    <button class="btn sm" type="button">Add row</button>
+    <div class="row">
+      <a class="btn sm" href="order-detail.html#default">Cancel</a>
+      <a class="btn sm primary" href="order-detail.html#toast-success" data-not-scene="failed">Save</a>
+      <button class="btn sm primary" data-scene="failed">Save</button>
+    </div>
+  </footer>
+  <div data-scene="default" class="small muted" style="padding:0 16px 8px;text-align:right">
+    <a href="#failed" data-goto="failed">(검토용) 저장 실패 시뮬레이션</a> · <a href="#non-primitive" data-goto="non-primitive">(검토용) 비원시값 포함</a> · <a href="#leave-prompt" data-goto="leave-prompt">(검토용) 값 수정 후 닫기</a>
+  </div>
+</div>
+
+<!-- 저장 실패: metadata-form.tsx:103-105 toast.error(error.message) -->
+<div class="toast error" data-scene="failed">
+  <span class="ti"></span>
+  <div class="grow"><b>An unknown error occurred.</b></div>
+  <a href="#default" class="muted" aria-label="Close">✕</a>
+</div>
+
+<!-- 이탈 프롬프트: route-modal-form.tsx:73-90 -->
+<div class="overlay" data-scene="leave-prompt" style="z-index:70"></div>
+<div class="prompt" data-scene="leave-prompt" role="alertdialog">
+  <div class="p-body">
+    <h2 class="h2">Are you sure you want to leave this form?</h2>
+    <p class="subtle">You have unsaved changes that will be lost if you exit this form.</p>
+  </div>
+  <div class="p-foot">
+    <a class="btn sm" href="#default" data-goto="default">Cancel</a>
+    <a class="btn sm primary" href="order-detail.html#default">Continue</a>
+  </div>
+</div>
+
+<script src="assets/scenes.js"></script>
+</body>
+</html>

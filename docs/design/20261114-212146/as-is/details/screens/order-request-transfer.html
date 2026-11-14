@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>order-request-transfer</title>
+<link rel="stylesheet" href="assets/medusa.css">
+</head>
+<body data-scenes="default:기본(Registered)|guest:Guest 선택|validation-error:Required 인라인 오류|failed:실패 토스트" data-note="근거: routes/orders/order-request-transfer (create-order-transfer-form.tsx, transfer-header.tsx). 일러스트는 원본 SVG 를 단순 도형으로 대체. Registered 성공 토스트 'Order transfer request sent to: jane@example.com.'(새 소유자가 아니라 주문 이메일이 들어감, :102) → 상세 활동의 transfer-requested, Guest 성공 'Order transferred to guest customer: {email}.' → 상세. Guest 에서 잘못된 이메일 제출 시 'Invalid email' 인라인. 유형을 바꾸면 오류·입력값이 초기화됨. 폼 오류가 있으면 Save 비활성. failed 토스트 문구는 서버 error.message 예시(미확인).">
+<div class="shell" aria-hidden="true">
+  <aside class="sidebar">
+    <div class="store"><span class="avatar">M</span><b>Medusa Store</b></div>
+    <nav>
+      <a href="#"><span class="ic">⌂</span>Search</a>
+      <a class="active" href="order-list.html#default"><span class="ic">▤</span>Orders</a>
+      <a href="#"><span class="ic">▣</span>Products</a>
+      <a href="#"><span class="ic">▥</span>Inventory</a>
+      <a href="#"><span class="ic">☺</span>Customers</a>
+      <a href="#"><span class="ic">%</span>Promotions</a>
+      <a href="#"><span class="ic">$</span>Price Lists</a>
+    </nav>
+    <div class="bottom"><a href="#">⚙ Settings</a></div>
+  </aside>
+  <div class="main">
+    <div class="topbar"><div class="crumbs"><a href="order-list.html#default">Orders</a><span>›</span><b>#1042</b></div></div>
+    <div class="content" style="opacity:.6">
+      <div class="two-col">
+        <div class="col-main">
+          <div class="container"><div class="sec between"><div><div class="h2">#1042</div><div class="muted small">2026-11-10 14:32 from Default Sales Channel</div></div><div class="row"><span class="badge green">Paid</span><span class="badge orange">Not fulfilled</span></div></div></div>
+          <div class="container"><div class="sec"><div class="h2">Summary</div></div><div class="sec"><div class="sk" style="height:56px"></div></div><div class="sec"><div class="sk" style="height:56px"></div></div></div>
+          <div class="container"><div class="sec"><div class="h2">Payments</div></div><div class="sec"><div class="sk" style="height:40px"></div></div></div>
+        </div>
+        <div class="col-side">
+          <div class="container"><div class="sec"><div class="h2">Customer</div></div><div class="sec"><div>Jane Doe</div><div class="muted">jane@example.com</div></div></div>
+          <div class="container"><div class="sec"><div class="h2">Activity</div></div><div class="sec"><div class="sk" style="height:80px"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="overlay"></div>
+<div class="drawer" role="dialog" aria-label="Transfer ownership">
+  <header>
+    <div class="h2">Transfer ownership</div>
+    <div class="row"><span class="kbd">esc</span><a class="btn ghost icon" href="order-detail.html#default" title="Close">✕</a></div>
+  </header>
+  <!-- create-order-transfer-form.tsx:117-240 -->
+  <div class="body">
+    <div class="stack" style="gap:32px">
+      <div class="row" style="justify-content:center"><!-- transfer-header.tsx: 장식 SVG(200x128), 단순화 -->
+      <svg width="200" height="128" viewBox="0 0 200 128" fill="none" aria-hidden="true">
+        <g stroke="#52525b" stroke-width="1.5" fill="#fff">
+          <rect x="18" y="40" width="56" height="70" rx="7" transform="rotate(-8 46 75)"/>
+          <rect x="126" y="40" width="56" height="70" rx="7" transform="rotate(8 154 75)"/>
+        </g>
+        <g stroke="#a1a1aa" stroke-width="1.5" stroke-linecap="round">
+          <path d="M32 60h28M32 70h20M32 80h24" transform="rotate(-8 46 75)"/>
+          <path d="M140 60h28M140 70h20M140 80h24" transform="rotate(8 154 75)"/>
+        </g>
+        <path d="M84 72h32m-8-8 8 8-8 8" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg></div>
+      <div class="field">
+        <label>Account type</label>
+        <div class="grid2" style="gap:12px">
+          <span data-not-scene="guest"><div class="switch-box" role="radio" aria-checked="true" style="box-shadow:0 0 0 2px var(--fg-interactive)"><span style="width:14px;height:14px;border-radius:999px;flex:none;margin-top:3px;background:var(--fg-interactive);box-shadow:var(--shadow-border);display:inline-grid;place-items:center"><span style="width:6px;height:6px;border-radius:999px;background:#fff"></span></span><div class="stack" style="gap:2px"><b style="font-weight:500">Registered</b><span class="small muted">Transfer to a registered customer, who must accept the request.</span></div></div></span>
+          <span data-scene="guest"><div class="switch-box" role="radio" aria-checked="false" data-goto="default" style="cursor:pointer;"><span style="width:14px;height:14px;border-radius:999px;flex:none;margin-top:3px;background:var(--bg-base);box-shadow:var(--shadow-border);display:inline-grid;place-items:center"></span><div class="stack" style="gap:2px"><b style="font-weight:500">Registered</b><span class="small muted">Transfer to a registered customer, who must accept the request.</span></div></div></span>
+          <span data-not-scene="guest"><div class="switch-box" role="radio" aria-checked="false" data-goto="guest" style="cursor:pointer;"><span style="width:14px;height:14px;border-radius:999px;flex:none;margin-top:3px;background:var(--bg-base);box-shadow:var(--shadow-border);display:inline-grid;place-items:center"></span><div class="stack" style="gap:2px"><b style="font-weight:500">Guest</b><span class="small muted">Transfer to a guest customer by email. Applied immediately.</span></div></div></span>
+          <span data-scene="guest"><div class="switch-box" role="radio" aria-checked="true" style="box-shadow:0 0 0 2px var(--fg-interactive)"><span style="width:14px;height:14px;border-radius:999px;flex:none;margin-top:3px;background:var(--fg-interactive);box-shadow:var(--shadow-border);display:inline-grid;place-items:center"><span style="width:6px;height:6px;border-radius:999px;background:#fff"></span></span><div class="stack" style="gap:2px"><b style="font-weight:500">Guest</b><span class="small muted">Transfer to a guest customer by email. Applied immediately.</span></div></div></span>
+        </div>
+      </div>
+      <div class="field">
+        <label>Current owner</label>
+        <span class="small muted">The customer currently related to this order.</span>
+        <input class="input" type="email" value="Jane Doe (jane@example.com)" disabled style="background:var(--bg-disabled);color:var(--fg-disabled);box-shadow:var(--shadow-border)">
+      </div>
+      <!-- type === registered: Combobox(has_account 고객만), placeholder actions.select -->
+      <div class="field" data-not-scene="guest">
+        <label>New owner</label>
+        <span class="small muted">The customer to transfer this order to.</span>
+        <button class="select" type="button" style="text-align:left;color:var(--fg-muted)" data-not-scene="validation-error failed">Select</button>
+        <button class="select" type="button" style="text-align:left;color:var(--fg-muted);box-shadow:0 0 0 1px var(--fg-error)" data-scene="validation-error">Select</button>
+        <button class="select" type="button" style="text-align:left" data-scene="failed">John Smith (john@example.com)</button>
+        <span class="err" data-scene="validation-error">Required</span>
+      </div>
+      <!-- type === guest: 이메일 입력 -->
+      <div class="field" data-scene="guest">
+        <label>New owner email</label>
+        <span class="small muted">The email of the guest customer to transfer this order to. A guest customer is created if none exists.</span>
+        <input class="input" type="email" placeholder="customer@example.com">
+      </div>
+    </div>
+  </div>
+  <footer>
+    <a class="btn sm" href="order-detail.html#default">Cancel</a>
+    <a class="btn primary sm" href="order-detail.html#transfer-requested" data-scene="default" title="고객 선택 후 제출 성공 시 토스트 Order transfer request sent to: jane@example.com. (미선택이면 validation-error 장면)">Save</a>
+    <button class="btn primary sm" type="button" data-scene="validation-error" disabled title="폼 오류가 있으면 Save 비활성">Save</button>
+    <button class="btn primary sm" type="button" data-scene="failed">Save</button>
+    <a class="btn primary sm" href="order-detail.html#toast-success" data-scene="guest" title="성공 시 토스트 Order transferred to guest customer: (입력 이메일).">Save</a>
+  </footer>
+</div>
+<div class="toast error" role="status" data-scene="failed"><span class="ti"></span><div>An unknown error occurred.</div></div>
+<script src="assets/scenes.js"></script>
+</body>
+</html>

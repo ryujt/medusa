@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>order-create-claim</title>
+<link rel="stylesheet" href="assets/medusa.css">
+</head>
+<body data-scenes="default:빈 클레임(자리표시)|loading:로딩(빈 모달)|add-inbound:Inbound 품목 표|add-outbound:Outbound 변형 표|items-added:품목 추가됨|item-menu:Inbound 품목 ⋯ 메뉴|confirm-prompt:확인 프롬프트|failed:확인 실패 토스트" data-note="근거: routes/orders/order-create-claim/**. 유형 선택 UI 없음(항상 type replace). X·esc 는 드래프트를 남기고 상세로(claim-active), Cancel Claim 은 드래프트 취소 후 상세로 + 토스트 'Claim was successfully canceled.'(상세 장면에는 없음). Confirm 성공 토스트 'Claim confirmed successfully'. 실패 토스트는 제목 없이 서버 메시지만. Confirm 은 order:update 권한 없으면 숨김. Outbound 배송 옵션 라벨은 '이름 (위치명)'. 금액·옵션명·오류 메시지는 예시(미확인). item-menu 는 계약 외 추가 장면.">
+
+<!-- 부모 화면(주문 상세) 단순화 셸 -->
+<div class="shell" aria-hidden="true">
+  <aside class="sidebar">
+    <div class="store"><span class="avatar">M</span><b>Medusa Store</b></div>
+    <nav>
+      <a href="#"><span class="ic">⌂</span>Search</a>
+      <a class="active" href="#"><span class="ic">▤</span>Orders</a>
+      <a href="#"><span class="ic">◇</span>Products</a>
+      <a href="#"><span class="ic">☺</span>Customers</a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="topbar"><div class="crumbs">Orders <span>›</span> <b>#1042</b></div></div>
+    <div class="content" style="filter: blur(1px); opacity: .7;">
+      <div class="two-col">
+        <div class="col-main">
+          <div class="container"><div class="sec"><div class="h2">#1042</div><p class="muted">Nov 10, 2026, 14:32 from Default Sales Channel</p></div></div>
+          <div class="container"><div class="sec h2">Summary</div><div class="sec" style="height:160px"></div></div>
+          <div class="container"><div class="sec h2">Payments</div><div class="sec" style="height:80px"></div></div>
+        </div>
+        <div class="col-side">
+          <div class="container"><div class="sec h2">Customer</div><div class="sec" style="height:120px"></div></div>
+          <div class="container"><div class="sec h2">Activity</div><div class="sec" style="height:160px"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="overlay"></div>
+
+
+<div class="focus-modal">
+  <!-- loading: 폼은 claim·preview·order 로드 후에만 렌더 → 빈 모달 -->
+  <div data-scene="add-inbound add-outbound" style="position:absolute; inset:0; background:var(--bg-disabled); z-index:5;"></div>
+  <header data-not-scene="loading">
+    <div class="row"><a class="btn icon ghost" href="order-detail.html#claim-active" title="Close">✕</a><span class="kbd">esc</span></div>
+  </header>
+  <div class="body" data-not-scene="loading">
+    <div style="width:100%; max-width:720px;">
+      <!-- order-create-claim/components/claim-create-form/claim-create-form.tsx -->
+      <div class="h1">Create Claim</div>
+      <div class="between" style="margin-top:32px;">
+        <div class="h2">Inbound</div>
+        <a href="#" data-goto="add-inbound" style="font-weight:500">Add items</a>
+      </div>
+      <div data-scene="default add-inbound add-outbound"><div style="margin-top:16px; height:56px; border-radius:8px; background: repeating-linear-gradient(-45deg, rgba(212,212,216,.15), rgba(212,212,216,.15) 10px, transparent 10px, transparent 20px), var(--bg-field); border: 1px dashed var(--border-strong);" ></div></div>
+      <div data-scene="items-added item-menu confirm-prompt failed">
+        
+<div class="item-card" style="margin:8px 0; border-radius:12px; background:var(--bg-subtle); box-shadow:var(--shadow-border);" data-not-scene="item-menu">
+  <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:12px; border-bottom:1px solid var(--border-base);">
+    <div class="between" style="flex:1; min-width:240px;">
+      <div class="row" style="gap:12px;"><span class="thumb"></span>
+        <div><div><b style="font-weight:500">Medusa Sweatpants</b> <span>(SWEAT-M-GRAY)</span></div><div class="subtle">Medusa Sweatpants</div></div>
+      </div>
+      
+    </div>
+    <div class="between" style="flex:1; min-width:240px;">
+      <div class="row grow"><input class="input" type="number" value="1" style="width:67px; border-radius:8px; background:var(--bg-base);"><span class="subtle">qty.</span></div>
+      <span class="subtle" style="margin-right:8px; white-space:nowrap;">$ 40.00 USD</span>
+      <div class="rel"><button class="btn icon ghost" type="button" data-goto="item-menu" title="Actions">⋯</button></div>
+    </div>
+  </div>
+  <div class="grid2" style="padding:12px; gap:8px;">
+    <div><div class="h3" style="font-size:13px">Reason</div><div class="subtle small" style="margin-top:4px">Choose why the customer want to return items.</div></div>
+    <div class="row" style="gap:4px;"><div class="input select row grow">Damaged</div><button class="btn icon ghost" type="button" title="Remove reason">✕</button></div>
+  </div>
+</div>
+        
+<div class="item-card" style="margin:8px 0; border-radius:12px; background:var(--bg-subtle); box-shadow:var(--shadow-border);" data-scene="item-menu">
+  <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:12px; ">
+    <div class="between" style="flex:1; min-width:240px;">
+      <div class="row" style="gap:12px;"><span class="thumb"></span>
+        <div><div><b style="font-weight:500">Medusa Sweatpants</b> <span>(SWEAT-M-GRAY)</span></div><div class="subtle">Medusa Sweatpants</div></div>
+      </div>
+      
+    </div>
+    <div class="between" style="flex:1; min-width:240px;">
+      <div class="row grow"><input class="input" type="number" value="1" style="width:67px; border-radius:8px; background:var(--bg-base);"><span class="subtle">qty.</span></div>
+      <span class="subtle" style="margin-right:8px; white-space:nowrap;">$ 40.00 USD</span>
+      <div class="rel"><button class="btn icon ghost" type="button" data-goto="items-added" title="Actions">⋯</button><div class="menu" data-scene="item-menu">
+<a href="#" data-goto="items-added"><span>☰</span>Add Reason</a>
+<a href="#" data-goto="items-added"><span>✎</span>Add Note</a>
+<a href="#" data-goto="default"><span>⊗</span>Remove</a>
+</div></div>
+    </div>
+  </div>
+</div>
+        <div class="stack" style="margin-top:32px; gap:16px;">
+          
+<div class="grid2" style="gap:8px;">
+  <div><div style="font-weight:500">Location</div><div class="subtle small" style="margin-top:4px">Choose which location you want to return the items to.</div></div>
+  <div class="rel"><div class="input select row">European Warehouse</div></div>
+</div>
+          
+<div class="grid2" style="gap:8px;">
+  <div><div style="font-weight:500">Return shipping <span class="muted" style="font-weight:400">(Optional)</span></div><div class="subtle small" style="margin-top:4px">Choose which method you want to use.</div></div>
+  <div class="rel"><div class="input select row"><span class="muted"></span></div></div>
+</div>
+        </div>
+      </div>
+
+      <div class="between" style="margin-top:32px;">
+        <div class="h2">Outbound</div>
+        <a href="#" data-goto="add-outbound" style="font-weight:500">Add items</a>
+      </div>
+      <div data-scene="default add-inbound add-outbound"><div style="margin-top:16px; height:56px; border-radius:8px; background: repeating-linear-gradient(-45deg, rgba(212,212,216,.15), rgba(212,212,216,.15) 10px, transparent 10px, transparent 20px), var(--bg-field); border: 1px dashed var(--border-strong);" ></div></div>
+      <div data-scene="items-added item-menu confirm-prompt failed">
+        
+<div class="item-card" style="margin:8px 0; border-radius:12px; background:var(--bg-subtle); box-shadow:var(--shadow-border);" >
+  <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:12px; ">
+    <div class="between" style="flex:1; min-width:240px;">
+      <div class="row" style="gap:12px;"><span class="thumb"></span>
+        <div><div><b style="font-weight:500">Medusa Sweatpants</b> <span>(SWEAT-L-GRAY)</span></div><div class="subtle">L / Gray</div></div>
+      </div>
+      
+    </div>
+    <div class="between" style="flex:1; min-width:240px;">
+      <div class="row grow"><input class="input" type="number" value="1" style="width:67px; border-radius:8px; background:var(--bg-base);"><span class="subtle">qty.</span></div>
+      <span class="subtle" style="margin-right:8px; white-space:nowrap;">$ 40.00 USD</span>
+      <div class="rel"><button class="btn icon ghost" type="button" title="Actions">⋯</button></div>
+    </div>
+  </div>
+</div>
+        <div class="stack" style="margin-top:32px; gap:16px;">
+          
+<div class="grid2" style="gap:8px;">
+  <div><div style="font-weight:500">Outbound shipping</div><div class="subtle small" style="margin-top:4px">Choose which method you want to use.</div></div>
+  <div class="rel"><div class="input select row">Standard Shipping (European Warehouse)<span class="muted" style="margin-left:auto; margin-right:16px;">✕</span></div></div>
+</div>
+        </div>
+      </div>
+
+      
+<div style="margin-top:32px; border-top:1px dotted var(--border-strong); border-bottom:1px dotted var(--border-strong); padding:16px 0;">
+  <div class="between" style="margin-bottom:8px;"><span class="subtle">Inbound total</span><span class="subtle row" style="gap:0"><span data-scene="default add-inbound add-outbound">$ 0.00 USD</span><span data-scene="items-added item-menu confirm-prompt failed">$ -40.00 USD</span></span></div>
+  <div class="between" style="margin-bottom:8px;"><span class="subtle">Outbound total</span><span class="subtle row" style="gap:0"><span data-scene="default add-inbound add-outbound">$ 0.00 USD</span><span data-scene="items-added item-menu confirm-prompt failed">$ 40.00 USD</span></span></div>
+  <div class="between" style="margin-bottom:8px;"><span class="subtle">Return shipping</span><span class="subtle row" style="gap:0"><button class="btn icon ghost" type="button" title="Edit shipping price" disabled style="background:transparent; color:var(--fg-disabled)">✎</button>$ 0.00 USD</span></div>
+<div data-scene="default add-inbound add-outbound">  <div class="between" style=""><span class="subtle">Outbound shipping</span><span class="subtle row" style="gap:0"><button class="btn icon ghost" type="button" title="Edit shipping price" disabled style="background:transparent; color:var(--fg-disabled)">✎</button>$ 0.00 USD</span></div></div><div data-scene="items-added item-menu confirm-prompt failed">  <div class="between" style=""><span class="subtle">Outbound shipping</span><span class="subtle row" style="gap:0"><button class="btn icon ghost" type="button" title="Edit shipping price" style="color:var(--fg-subtle)">✎</button>$ 10.00 USD</span></div></div>
+  <div class="between" style="margin-top:16px; padding-top:16px; border-top:1px dotted var(--border-strong); font-weight:500;"><span>Estimated difference</span><span><span data-scene="default add-inbound add-outbound">$ 0.00 USD</span><span data-scene="items-added item-menu confirm-prompt failed">$ 10.00 USD</span></span></div>
+</div>
+      <!-- Carry over promotions: 주문에 promotions 가 있을 때만 표시. 여기서는 프로모션이 있는 주문으로 가정 -->
+      <div data-scene="items-added item-menu confirm-prompt failed">
+<div class="switch-box" style="margin-top:16px; padding:8px 16px 8px 8px; border:1px solid var(--border-base); box-shadow:none; background:var(--bg-field);">
+  <span class="switch" style="margin-top:2px; margin-right:4px;"></span>
+  <div><div style="font-weight:500">Carry over promotions</div><div class="subtle small" style="margin-top:4px">Apply the order's promotions to the claim items</div></div>
+</div></div>
+      
+<div class="switch-box" style="margin-top:32px; padding:8px 16px 8px 8px; border:1px solid var(--border-base); box-shadow:none; background:var(--bg-field);">
+  <span class="switch" style="margin-top:2px; margin-right:4px;"></span>
+  <div><div style="font-weight:500">Send notification</div><div class="subtle small" style="margin-top:4px">Notify customer about return.</div></div>
+</div>
+      <div style="padding:32px"></div>
+    </div>
+  </div>
+  <footer data-not-scene="loading">
+    <a class="btn" href="order-detail.html#default">Cancel Claim</a>
+    <button class="btn primary" type="button" data-goto="confirm-prompt">Confirm Claim</button>
+  </footer>
+</div>
+
+<!-- StackedFocusModal: 부모 모달 위에 겹침(top 24px, 부모는 !inset-x-5 !inset-y-3 + bg-disabled) -->
+<div class="focus-modal" style="top:calc(var(--rb, 0px) + 24px); z-index:70;" data-scene="add-inbound">
+  <header><div class="row"><a class="btn icon ghost" href="#" data-goto="default" title="Close">✕</a><span class="kbd">esc</span></div></header>
+  <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+    <div class="toolbar" style="padding:8px 16px;">
+      <div class="row"><span class="chip">+ Add filter</span></div>
+      <div class="row"><input class="input" placeholder="Search" style="width:180px; height:28px;"><button class="btn icon" type="button" title="Sort">⇅</button></div>
+    </div>
+    <div class="table-wrap" style="flex:1; overflow:auto;"><table class="table"><thead><tr><th style="width:32px"><span class="checkbox">–</span></th><th>Product</th><th>SKU</th><th>Variant</th><th>Quantity</th><th style="text-align:right">Price</th></tr></thead><tbody><tr><td><span class="checkbox"></span></td><td><div class="row"><span class="thumb" style="width:24px;height:32px"></span>Medusa T-Shirt</div></td><td>SHIRT-L-BLACK</td><td>L / Black</td><td>2</td><td style="text-align:right">$ 50.00 USD</td></tr><tr><td><span class="checkbox on">✓</span></td><td><div class="row"><span class="thumb" style="width:24px;height:32px"></span>Medusa Sweatpants</div></td><td>SWEAT-M-GRAY</td><td>M / Gray</td><td>1</td><td style="text-align:right">$ 40.00 USD</td></tr></tbody></table></div>
+    <div class="pager" style="padding:12px 16px; border-top:1px solid var(--border-base);"><span>1 — 2 of 2 results</span><span class="row"><span>1 of 1 pages</span><span class="muted">Prev</span><span class="muted">Next</span></span></div>
+  </div>
+  <footer><button class="btn" type="button" data-goto="default">Cancel</button><button class="btn primary" type="button" data-goto="items-added">Save</button></footer>
+</div>
+
+<!-- StackedFocusModal: 부모 모달 위에 겹침(top 24px, 부모는 !inset-x-5 !inset-y-3 + bg-disabled) -->
+<div class="focus-modal" style="top:calc(var(--rb, 0px) + 24px); z-index:70;" data-scene="add-outbound">
+  <header><div class="row"><a class="btn icon ghost" href="#" data-goto="default" title="Close">✕</a><span class="kbd">esc</span></div></header>
+  <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+    <div class="toolbar" style="padding:8px 16px;">
+      <div class="row"><span class="chip">+ Add filter</span></div>
+      <div class="row"><input class="input" placeholder="Search" style="width:180px; height:28px;"><button class="btn icon" type="button" title="Sort">⇅</button></div>
+    </div>
+    <div class="table-wrap" style="flex:1; overflow:auto;"><!-- 변형 표: Product | SKU | Title | Inventory (VariantInventoryCell, 재고 0 은 빨강) --><table class="table"><thead><tr><th style="width:32px"><span class="checkbox"></span></th><th>Product</th><th>SKU</th><th>Title</th><th>Inventory</th></tr></thead><tbody><tr><td><span class="checkbox"></span></td><td><div class="row"><span class="thumb" style="width:24px;height:32px"></span>Medusa T-Shirt</div></td><td>SHIRT-S-BLACK</td><td>S / Black</td><td>12 available at 1 location</td></tr><tr><td><span class="checkbox"></span></td><td><div class="row"><span class="thumb" style="width:24px;height:32px"></span>Medusa T-Shirt</div></td><td>SHIRT-M-BLACK</td><td>M / Black</td><td>9 available at 1 location</td></tr><tr><td><span class="checkbox"></span></td><td><div class="row"><span class="thumb" style="width:24px;height:32px"></span>Medusa T-Shirt</div></td><td>SHIRT-L-BLACK</td><td>L / Black</td><td><span style="color:var(--fg-error)">0 available at 1 location</span></td></tr><tr><td><span class="checkbox"></span></td><td><div class="row"><span class="thumb" style="width:24px;height:32px"></span>Medusa Sweatpants</div></td><td>SWEAT-M-GRAY</td><td>M / Gray</td><td>8 available at 1 location</td></tr><tr><td><span class="checkbox on">✓</span></td><td><div class="row"><span class="thumb" style="width:24px;height:32px"></span>Medusa Sweatpants</div></td><td>SWEAT-L-GRAY</td><td>L / Gray</td><td>5 available at 1 location</td></tr><tr><td><span class="checkbox"></span></td><td><div class="row"><span class="thumb" style="width:24px;height:32px"></span>Medusa Sweatshirt</div></td><td>SWEATSHIRT-M</td><td>M</td><td>Not managed</td></tr></tbody></table></div>
+    <div class="pager" style="padding:12px 16px; border-top:1px solid var(--border-base);"><span>1 — 6 of 6 results</span><span class="row"><span>1 of 1 pages</span><span class="muted">Prev</span><span class="muted">Next</span></span></div>
+  </div>
+  <footer><button class="btn" type="button" data-goto="default">Cancel</button><button class="btn primary" type="button" data-goto="items-added">Save</button></footer>
+</div>
+
+<div class="overlay" style="z-index:75" data-scene="confirm-prompt"></div>
+<div class="prompt" data-scene="confirm-prompt">
+  <div class="p-body"><div class="h2">Are you sure?</div><p class="subtle">You are about to confirm a Claim. This action cannot be undone.</p></div>
+  <div class="p-foot"><button class="btn" type="button" data-goto="items-added">Cancel</button><a class="btn primary" href="order-detail.html#toast-success">Continue</a></div>
+</div>
+
+<div class="toast error" data-scene="failed"><span class="ti"></span><div class="grow"><div style="font-weight:500">(server error message)</div></div><span class="muted">✕</span></div>
+
+<script src="assets/scenes.js"></script>
+</body>
+</html>

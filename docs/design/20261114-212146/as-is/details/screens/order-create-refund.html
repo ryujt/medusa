@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>order-create-refund</title>
+<link rel="stylesheet" href="assets/medusa.css">
+</head>
+<body data-scenes="default:기본(결제 선택)|from-payment:결제행에서 진입(정적 결제)|server-error:서버 거절 토스트|loyalty-refund:로열티: Payment method|loyalty-credit:로열티: Store credit|credit-disabled:로열티: Store credit 비활성(게스트)|loading:로딩" data-note="근거: routes/orders/order-create-refund, order-balance-settlement. 로열티 플러그인(@medusajs/loyalty-plugin) 설치 시 같은 제목 아래 Balance settlement 폼으로 교체됨. 성공 토스트 'Refund of amount $20.00 successful' / 'Credit line created successfully' 후 상세로 복귀. 결제 표시명은 formatProvider('pp_system_default') = 'System (DEFAULT)'(Manual 아님). default 는 결제 미선택이라 Amount 0.00, 결제를 고르면 min(미결 차액, 결제액)로 채워짐. Amount max 규칙은 zodResolver 때문에 무시되어 초과액이 서버까지 감(server-error). Store credit 은 미결 차액이 없을 때도 비활성('Only available when the order has an outstanding amount...'), 권한 없으면 숨김. Refund Reason 옵션 목록·서버 오류 원문 외 문구는 미확인.">
+<div class="shell" aria-hidden="true">
+  <aside class="sidebar">
+    <div class="store"><span class="avatar">M</span><b>Medusa Store</b></div>
+    <nav>
+      <a href="#"><span class="ic">⌂</span>Search</a>
+      <a class="active" href="order-list.html#default"><span class="ic">▤</span>Orders</a>
+      <a href="#"><span class="ic">▣</span>Products</a>
+      <a href="#"><span class="ic">▥</span>Inventory</a>
+      <a href="#"><span class="ic">☺</span>Customers</a>
+      <a href="#"><span class="ic">%</span>Promotions</a>
+      <a href="#"><span class="ic">$</span>Price Lists</a>
+    </nav>
+    <div class="bottom"><a href="#">⚙ Settings</a></div>
+  </aside>
+  <div class="main">
+    <div class="topbar"><div class="crumbs"><a href="order-list.html#default">Orders</a><span>›</span><b>#1042</b></div></div>
+    <div class="content" style="opacity:.6">
+      <div class="two-col">
+        <div class="col-main">
+          <div class="container"><div class="sec between"><div><div class="h2">#1042</div><div class="muted small">2026-11-10 14:32 from Default Sales Channel</div></div><div class="row"><span class="badge green">Paid</span><span class="badge orange">Not fulfilled</span></div></div></div>
+          <div class="container"><div class="sec"><div class="h2">Summary</div></div><div class="sec"><div class="sk" style="height:56px"></div></div><div class="sec"><div class="sk" style="height:56px"></div></div></div>
+          <div class="container"><div class="sec"><div class="h2">Payments</div></div><div class="sec"><div class="sk" style="height:40px"></div></div></div>
+        </div>
+        <div class="col-side">
+          <div class="container"><div class="sec"><div class="h2">Customer</div></div><div class="sec"><div>Jane Doe</div><div class="muted">jane@example.com</div></div></div>
+          <div class="container"><div class="sec"><div class="h2">Activity</div></div><div class="sec"><div class="sk" style="height:80px"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="overlay"></div>
+<div class="drawer" role="dialog" aria-label="Create Refund">
+  <header>
+    <div class="h2">Create Refund</div>
+    <div class="row"><span class="kbd">esc</span><a class="btn ghost icon" href="order-detail.html#default" title="Close">✕</a></div>
+  </header>
+  <!-- order-create-refund.tsx:22-29 order 로딩 전에는 헤더만 렌더 (폼/푸터는 폼 컴포넌트 안에 있음) -->
+  <div class="body" data-not-scene="loading">
+    <!-- create-refund-form.tsx:138-200 paymentId 없을 때 Select, 있을 때 정적 결제 줄 -->
+    <div class="stack" style="gap:16px" data-scene="default from-payment server-error">
+      <div class="field" data-scene="default">
+        <label>Select payment to refund</label>
+        <button class="select" type="button" style="text-align:left;color:var(--fg-muted)" title="옵션 예: $100.00 - System (DEFAULT) - (#6WKBYHD), 취소·전액환불 결제는 비활성">Select payment to refund</button>
+      </div>
+      <div class="row" data-scene="from-payment server-error"><span>$100.00</span><span>&nbsp;-&nbsp;</span><span>(#6WKBYHD)</span></div>
+      <div class="field">
+        <label>Amount</label>
+        <div class="input row" style="gap:6px"><span class="muted">$</span><span class="grow" data-scene="default">0.00</span><span class="grow" data-scene="from-payment">100.00</span><span class="grow" data-scene="server-error">150.00</span><span class="muted">USD</span></div>
+      </div>
+      <div class="field"><label>Refund Reason</label><button class="select" type="button"></button></div>
+      <div class="field"><label>Note</label><textarea class="input"></textarea></div>
+    </div>
+    <!-- order-balance-settlement-form.tsx:214-249 Settlement type 라디오(세로 배치) -->
+    <div class="stack" style="gap:16px" data-scene="loyalty-refund loyalty-credit credit-disabled">
+      <div class="stack" style="gap:16px">
+        <label style="font-weight:500">Settlement type</label>
+        <div class="stack" style="gap:12px">
+          <span data-scene="loyalty-refund credit-disabled"><div class="switch-box" role="radio" aria-checked="true" style="box-shadow:0 0 0 2px var(--fg-interactive)"><span style="width:14px;height:14px;border-radius:999px;flex:none;margin-top:3px;background:var(--fg-interactive);box-shadow:var(--shadow-border);display:inline-grid;place-items:center"><span style="width:6px;height:6px;border-radius:999px;background:#fff"></span></span><div class="stack" style="gap:2px"><b style="font-weight:500">Payment method</b><span class="small muted">Refund amount to the payment method</span></div></div></span>
+          <span data-scene="loyalty-credit"><div class="switch-box" role="radio" aria-checked="false" data-goto="loyalty-refund" style="cursor:pointer;"><span style="width:14px;height:14px;border-radius:999px;flex:none;margin-top:3px;background:var(--bg-base);box-shadow:var(--shadow-border);display:inline-grid;place-items:center"></span><div class="stack" style="gap:2px"><b style="font-weight:500">Payment method</b><span class="small muted">Refund amount to the payment method</span></div></div></span>
+          <span data-scene="loyalty-refund"><div class="switch-box" role="radio" aria-checked="false" data-goto="loyalty-credit" style="cursor:pointer;"><span style="width:14px;height:14px;border-radius:999px;flex:none;margin-top:3px;background:var(--bg-base);box-shadow:var(--shadow-border);display:inline-grid;place-items:center"></span><div class="stack" style="gap:2px"><b style="font-weight:500">Store credit</b><span class="small muted">Refund amount as store credit</span></div></div></span>
+          <span data-scene="loyalty-credit"><div class="switch-box" role="radio" aria-checked="true" style="box-shadow:0 0 0 2px var(--fg-interactive)"><span style="width:14px;height:14px;border-radius:999px;flex:none;margin-top:3px;background:var(--fg-interactive);box-shadow:var(--shadow-border);display:inline-grid;place-items:center"><span style="width:6px;height:6px;border-radius:999px;background:#fff"></span></span><div class="stack" style="gap:2px"><b style="font-weight:500">Store credit</b><span class="small muted">Refund amount as store credit</span></div></div></span>
+          <span data-scene="credit-disabled"><div class="switch-box" role="radio" aria-checked="false" aria-disabled="true" style="color:var(--fg-disabled);cursor:not-allowed;"><span style="width:14px;height:14px;border-radius:999px;flex:none;margin-top:3px;background:var(--bg-base);box-shadow:var(--shadow-border);display:inline-grid;place-items:center"></span><div class="stack" style="gap:2px"><b style="font-weight:500">Store credit</b><span class="small ">Only available for customers with an account. This order was placed by a guest.</span></div></div></span>
+        </div>
+      </div>
+      <hr style="border:0;border-top:1px dashed var(--border-strong);margin:0;width:100%">
+      <!-- order-balance-settlement-form.tsx:253-392 refund 선택 시: 결제 Select(옵션 id 는 pay_ 제거한 전체), Amount, Refund Reason, Note -->
+      <div class="stack" style="gap:16px" data-scene="loyalty-refund credit-disabled">
+        <div class="field">
+          <label>Select payment to refund</label>
+          <button class="select" type="button" style="text-align:left;color:var(--fg-muted)" title="옵션 예: $100.00 - System (DEFAULT) - (01JC9ZQ8M4X2N7P5R3T6WKBYHD)">Select payment to refund</button>
+        </div>
+        <div class="field"><label>Amount</label><div class="input row" style="gap:6px"><span class="muted">$</span><span class="grow">0.00</span><span class="muted">USD</span></div></div>
+        <div class="field"><label>Refund Reason</label><button class="select" type="button"></button></div>
+        <div class="field"><label>Note</label><textarea class="input"></textarea></div>
+      </div>
+      <!-- order-balance-settlement-form.tsx:394-432 credit_line 선택 시 Amount 만 (기본값 = 미결 차액) -->
+      <div class="field" data-scene="loyalty-credit">
+        <label>Amount</label>
+        <div class="input row" style="gap:6px"><span class="muted">$</span><span class="grow">20.00</span><span class="muted">USD</span></div>
+      </div>
+    </div>
+  </div>
+  <footer data-not-scene="loading">
+    <a class="btn sm" href="order-detail.html#default">Cancel</a>
+    <a class="btn primary sm" href="order-detail.html#toast-success" data-scene="default from-payment loyalty-refund credit-disabled" title="성공 토스트: Refund of amount $20.00 successful">Save</a>
+    <button class="btn primary sm" type="button" data-scene="server-error" title="서버 거절 후에도 버튼은 활성(폼 오류가 아님)">Save</button>
+    <a class="btn primary sm" href="order-detail.html#toast-success" data-scene="loyalty-credit" title="성공 토스트: Credit line created successfully">Save</a>
+  </footer>
+</div>
+<div class="toast error" role="status" data-scene="server-error"><span class="ti"></span><div>You are not allowed to refund more than the captured amount</div></div>
+<script src="assets/scenes.js"></script>
+</body>
+</html>

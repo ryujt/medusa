@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>order-detail</title>
+<link rel="stylesheet" href="assets/medusa.css">
+<style>
+  /* StatusBadge(@medusajs/ui): 회색 상자 + 색 점 */
+  .sb { height: 20px; padding: 0 6px 0 5px; border-radius: 6px; background: var(--bg-subtle); box-shadow: var(--shadow-border); font-size: 12px; font-weight: 500; white-space: nowrap; }
+  .pill { border-radius: 999px; height: 18px; font-size: 11px; }
+  .copy { color: var(--fg-muted); font-size: 12px; cursor: pointer; }
+  .dash > * + * { border-top: 1px dashed var(--border-base); }
+  .solid > * + * { border-top: 1px solid var(--border-base); }
+  .hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 16px 24px; }
+  .item { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: center; padding: 16px 24px; color: var(--fg-subtle); }
+  .item .r3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: center; }
+  .item .t { color: var(--fg-base); }
+  .r { text-align: right; }
+  .costs { display: flex; flex-direction: column; gap: 8px; padding: 16px 24px; color: var(--fg-subtle); }
+  .cost { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .cost > :last-child { text-align: right; }
+  .foot { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; padding: 16px; background: var(--bg-subtle); }
+  .sub { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 16px 24px; background: var(--bg-subtle); color: var(--fg-subtle); }
+  .pay { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 28px; gap: 16px; align-items: center; padding: 16px 24px; color: var(--fg-subtle); }
+  .pay > .prov { text-align: right; }
+  @media (max-width: 640px) { .pay { grid-template-columns: 1fr 1fr 1fr 28px; } .pay > .prov { display: none; } }
+  .kv2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; padding: 16px 24px; color: var(--fg-subtle); }
+  .kv2 > :first-child { font-weight: 500; }
+  .stripes { margin: -8px -8px 4px; padding: 8px; border-bottom: 1px solid var(--border-base); border-left: 1px solid var(--border-base); background: repeating-linear-gradient(-45deg, rgba(212,212,216,.15), rgba(212,212,216,.15) 10px, transparent 10px, transparent 20px); }
+  .tl { display: grid; grid-template-columns: 20px 1fr; gap: 8px; align-items: start; }
+  .tl .rail { display: flex; flex-direction: column; align-items: center; align-self: stretch; }
+  .tl .dot { width: 20px; height: 20px; display: grid; place-items: center; }
+  .tl .dot::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: var(--tag-neutral-icon); box-shadow: 0 0 0 2px var(--bg-base), 0 0 0 3px var(--border-strong); }
+  .tl .line { flex: 1; width: 1px; background: var(--border-base); }
+  .tl .line.dotted { background: repeating-linear-gradient(var(--border-strong) 0 1px, transparent 1px 3px); }
+  .tl .bodyx { padding-bottom: 16px; }
+  .tl.last .bodyx { padding-bottom: 0; }
+  .tl .ttl { font-weight: 500; }
+  .linkbtn { background: none; border: 0; padding: 0; font: inherit; color: var(--fg-subtle); font-weight: 500; cursor: pointer; }
+  .catcher { position: fixed; inset: 0; z-index: 15; }
+  .menu { z-index: 20; }
+  .drawer.dark { background: #18181b; color: #e4e4e7; }
+  .drawer.dark > header { border-bottom: 0; background: #27272a; border-radius: 8px 8px 0 0; }
+  .drawer.dark pre { margin: 0; padding: 12px; background: #27272a; border-radius: 8px; font-size: 12px; line-height: 18px; overflow: auto; flex: 1; }
+  /* 공통 CSS 의 세로 적층(align-items:flex-start)에서 본문 열이 내용 폭으로 줄지 않게 */
+  @media (max-width: 1279px) { .two-col > .col-main { width: 100%; } }
+  .switch-row { display: flex; justify-content: space-between; align-items: center; padding: 24px; border-top: 1px dotted var(--border-base); border-bottom: 1px dotted var(--border-base); color: var(--fg-subtle); }
+</style>
+</head>
+<body data-scenes="default:기본(미이행·결제 완료)|loading:로딩(TwoColumnPageSkeleton)|not-found:404(ErrorBoundary)|access-denied:권한 없음(order:read)|menu-general:General ⋯ 메뉴|cancel-prompt:주문 취소 프롬프트|canceled:취소된 주문|menu-summary:Summary ⋯ 메뉴|menu-unfulfilled:Unfulfilled ⋯ 메뉴|fulfilled:이행됨(Awaiting shipping)|menu-fulfillment:Fulfillment ⋯ 메뉴|cancel-fulfillment-prompt:이행 취소 프롬프트|deliver-prompt:배송 완료 확인 프롬프트|shipped:출고됨(Tracking)|awaiting-payment:결제 대기(링크/수동 결제/캡처)|mark-paid-prompt:Mark as paid 프롬프트|capture-prompt:캡처 프롬프트|awaiting-authorization:결제 승인 대기 배너|menu-payment:결제행 ⋯ 메뉴|refund-due:환불 필요(Refund 버튼)|return-active:Return initiated 배너|claim-active:Claim initiated 배너|exchange-active:Exchange initiated 배너|edit-pending:Order edit pending|edit-requested:Order edit requested|return-requested:반품 요청됨(Receive items)|return-cancel-prompt:활동 반품 취소 프롬프트|transfer-requested:소유권 이전 요청됨|transfer-cancel-prompt:이전 취소(Delete) 프롬프트|menu-customer:Customer ⋯ 메뉴|json-drawer:JSON 드로어|toast-success:하위 작업 성공 토스트|toast-error:진행 중 변경 오류 토스트"
+      data-note="근거: routes/orders/order-detail/order-detail.tsx 및 components/*(general·summary·payment·fulfillment·customer·activity(order-timeline.tsx)·active-order-*·order-active-edit·copy-payment-link), common/customer-info, metadata-section, json-view-section, error-boundary, skeleton.tsx, lib/order-helpers·money-amount-helpers·format-provider. 금액: 행 금액은 getLocaleAmount('$100.00'), 합계는 getStylizedAmount('$ 100.00 USD'). 결제 provider 'System (DEFAULT)', 이행 provider 'Manual'. 날짜는 useDate PP p 형식(브라우저 로캘), 상대시간은 오늘 2026-11-14 기준. toast-success: 작업별 토스트 문구는 navigation.md 참고(여기서는 'Fulfillment created successfully' 예시). 메뉴의 Create Return/Exchange/Claim 은 출고 품목이 없어 비활성(링크는 각 initiated 배너 Continue 로 연결). 활동은 3개 초과 시 최근 2개+'Show n more activities'+Order placed 로 접힘(펼친 상태는 장면 없음). 미확인: awaiting-payment 는 승인($80, 미캡처)+미결 컬렉션($20) 조합 가정, awaiting-authorization 의 결제 배지(Awaiting), canceled 후 결제 상태·예약 상태, refund-due 의 -$20 원인(합계 행은 그대로 둠), JSON 키 수(42), 승인/배송완료/Mark as paid 확정 후 결과 화면(원래 장면으로 복귀시킴), claim/exchange 드래프트의 활동 표시.">
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="store"><span class="avatar">M</span><div><b>Medusa Store</b></div></div>
+    <nav>
+      <a href="#"><span class="ic">⌕</span>Search <span class="kbd" style="margin-left:auto">⌘K</span></a>
+    </nav>
+    <nav style="border-top:1px dashed var(--border-strong)">
+      <a class="active" href="order-list.html#default"><span class="ic">▣</span>Orders</a>
+      <a href="#"><span class="ic">▤</span>Products</a>
+      <a href="#"><span class="ic">▥</span>Inventory</a>
+      <a href="#"><span class="ic">◉</span>Customers</a>
+      <a href="#"><span class="ic">%</span>Promotions</a>
+      <a href="#"><span class="ic">$</span>Price Lists</a>
+    </nav>
+    <div class="bottom"><nav><a href="#"><span class="ic">⚙</span>Settings</a></nav></div>
+  </aside>
+
+  <div class="main">
+    <!-- breadcrumb.tsx: 주문을 불러오면 #display_id -->
+    <div class="topbar">
+      <div class="crumbs"><a href="order-list.html#default">Orders</a><span>›</span><b data-not-scene="loading not-found access-denied">#1042</b></div>
+      <div class="row muted">⌂</div>
+    </div>
+
+    <div class="content">
+
+      <!-- 로딩: order-detail.tsx:56-60 TwoColumnPageSkeleton(mainSections 4, sidebarSections 2, showJSON) / skeleton.tsx:271 -->
+      <div class="two-col" data-scene="loading">
+        <div class="col-main">
+          <div class="sk" style="height:219px;border-radius:8px"></div>
+          <div class="sk" style="height:460px;border-radius:8px"></div>
+          <div class="sk" style="height:300px;border-radius:8px"></div>
+          <div class="sk" style="height:300px;border-radius:8px"></div>
+          <div class="sk" style="height:60px;border-radius:8px"></div>
+          <div class="sk" style="height:60px;border-radius:8px"></div>
+        </div>
+        <div class="col-side">
+          <div class="sk" style="height:140px;border-radius:8px"></div>
+          <div class="sk" style="height:320px;border-radius:8px"></div>
+        </div>
+      </div>
+
+      <!-- 404: error-boundary.tsx:117-133 -->
+      <div data-scene="not-found" class="row" style="min-height:calc(100vh - 81px);justify-content:center">
+        <div class="stack" style="align-items:center;gap:12px">
+          <div class="subtle" style="font-size:16px">ⓘ</div>
+          <b>404 - There is no page at this address</b>
+          <span class="muted" style="text-align:center">Check the URL and try again, or use the search bar to find what you are looking for.</span>
+        </div>
+      </div>
+
+      <!-- 권한 없음: route-permission-guard / error-boundary isPermissionError → AccessDenied -->
+      <div data-scene="access-denied" class="row" style="min-height:60vh;justify-content:center;padding:16px">
+        <div class="container" style="max-width:448px;width:100%">
+          <div class="stack" style="align-items:center;text-align:center;padding:32px 24px;gap:16px">
+            <div style="width:48px;height:48px;border-radius:999px;background:var(--bg-subtle);display:grid;place-items:center" class="muted">!</div>
+            <div class="stack" style="gap:4px">
+              <h2 class="h2">Access Denied</h2>
+              <p class="subtle">You don't have permission to access this page.</p>
+            </div>
+            <p class="small muted">Required permission: order:read</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 본문 2열: two-column-layout-component.tsx (xl 미만 세로 적층) -->
+      <div class="two-col" data-not-scene="loading not-found access-denied">
+        <div class="col-main">
+
+          <!-- order-active-edit-section.tsx:132-215 -->
+          <div class="stripes" data-scene="edit-pending edit-requested">
+            <div class="container dash">
+              <div class="row" style="padding:16px 24px"><span style="color:var(--fg-interactive)">●</span><h2 class="h2"><span data-scene="edit-pending">Order edit pending</span><span data-scene="edit-requested">Order edit requested</span></h2></div>
+              <div class="row subtle small" style="padding:16px 24px;align-items:flex-start">
+                <span class="grow" style="font-weight:500">Added</span>
+                <div class="grow row"><span>1x</span><span class="thumb"></span><b style="font-weight:500">Medusa T-Shirt</b> · <span>SHIRT-L-BLACK</span><span class="copy">⧉</span></div>
+              </div>
+              <div class="row subtle small" style="padding:16px 24px;align-items:flex-start">
+                <span class="grow" style="font-weight:500">Removed</span>
+                <div class="grow row"><span>1x</span><span class="thumb"></span><b style="font-weight:500">Medusa Sweatpants</b> · <span>SWEAT-M-GRAY</span><span class="copy">⧉</span></div>
+              </div>
+              <div class="foot">
+                <a class="btn sm" href="order-create-edit.html#default" data-scene="edit-pending">Continue edit</a>
+                <button class="btn sm" type="button" data-scene="edit-requested" data-goto="default" title="성공 토스트: Order edit confirmed successfully(결과 화면은 미재현)">Force confirm</button>
+                <button class="btn sm" type="button" data-goto="default" title="성공 토스트: Order edit canceled successfully">Cancel</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- active-order-claim/exchange/return-section.tsx: 줄무늬 배너 -->
+          <div class="stripes" data-scene="claim-active exchange-active return-active">
+            <div class="container between" style="align-items:center">
+              <div>
+                <div class="row" style="padding:16px 24px 0;margin-bottom:8px">
+                  <span class="subtle" data-scene="claim-active">ⓘ</span><span class="subtle" data-scene="exchange-active">⇄</span><span class="subtle" data-scene="return-active">↩</span>
+                  <h2 class="h2"><span data-scene="claim-active">Claim initiated</span><span data-scene="exchange-active">Exchange initiated</span><span data-scene="return-active">Return initiated</span></h2>
+                </div>
+                <p style="padding:0 24px 16px"><span data-scene="claim-active">There is an open claim request to be completed</span><span data-scene="exchange-active">There is an open exchange request to be completed</span><span data-scene="return-active">There is an open return request to be completed</span></p>
+              </div>
+              <div class="row" style="padding:16px">
+                <button class="btn sm" type="button" data-scene="claim-active" data-goto="shipped" title="토스트: Claim canceled successfully(드래프트 취소, 확인 프롬프트 없음)">Cancel Claim</button>
+                <a class="btn sm" href="order-create-claim.html#default" data-scene="claim-active">Continue</a>
+                <button class="btn sm" type="button" data-scene="exchange-active" data-goto="shipped" title="토스트: Exchange canceled successfully(확인 프롬프트 없음)">Cancel Exchange</button>
+                <a class="btn sm" href="order-create-exchange.html#default" data-scene="exchange-active">Continue</a>
+                <button class="btn sm" type="button" data-scene="return-active" data-goto="shipped" title="토스트: Return canceled successfully(확인 프롬프트 없음)">Cancel Return</button>
+                <a class="btn sm" href="order-create-return.html#default" data-scene="return-active">Continue</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- order-general-section.tsx:59-98 -->
+          <div class="container hd">
+            <div>
+              <div class="row" style="gap:4px"><h1 class="h1">#1042</h1><span class="copy" title="Copy">⧉</span></div>
+              <div class="small subtle">Nov 10, 2026 2:32 PM from Default Sales Channel</div>
+            </div>
+            <div class="row" style="gap:16px">
+              <div class="row" style="gap:6px;flex-wrap:wrap;justify-content:flex-end">
+                <span class="sb status red" data-scene="canceled">Canceled</span>
+                <span class="sb status green" data-not-scene="awaiting-payment mark-paid-prompt capture-prompt awaiting-authorization">Captured</span>
+                <span class="sb status red" data-scene="awaiting-payment mark-paid-prompt capture-prompt">Partially authorized</span>
+                <span class="sb status orange" data-scene="awaiting-authorization">Awaiting</span>
+                <span class="sb status red" data-not-scene="fulfilled menu-fulfillment cancel-fulfillment-prompt deliver-prompt shipped return-active claim-active exchange-active return-requested return-cancel-prompt">Not fulfilled</span>
+                <span class="sb status green" data-scene="fulfilled menu-fulfillment cancel-fulfillment-prompt deliver-prompt">Fulfilled</span>
+                <span class="sb status green" data-scene="shipped return-active claim-active exchange-active return-requested return-cancel-prompt">Shipped</span>
+              </div>
+              <div class="rel">
+                <button class="btn ghost icon" type="button" data-goto="menu-general" title="Actions">⋯</button>
+                <div class="menu" data-scene="menu-general">
+                  <a href="#cancel-prompt" data-goto="cancel-prompt">⊗ Cancel</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- order-summary-section.tsx:218-321 -->
+          <div class="container dash">
+            <div class="hd">
+              <h2 class="h2">Summary</h2>
+              <div class="rel">
+                <button class="btn ghost icon" type="button" data-goto="menu-summary" title="Actions">⋯</button>
+                <!-- Header(:323-440): 편집은 취소 주문/다른 변경 진행/요청됨 상태에서 비활성, RMA 는 반품 가능 수량(출고분)이 없으면 비활성 -->
+                <div class="menu" data-scene="menu-summary">
+                  <a href="order-create-edit.html#default">✎ Edit order</a>
+                  <div class="sep"></div>
+                  <div class="item disabled" style="color:var(--fg-disabled);cursor:not-allowed" title="비활성: 출고된(반품 가능한) 품목이 없음. 출고 후 활성 → order-create-return.html#default">↩ Create Return</div>
+                  <div class="item disabled" style="color:var(--fg-disabled);cursor:not-allowed" title="비활성: 출고된 품목이 없음(진행 중 교환이 있으면 'Manage Exchange'). 활성 시 → order-create-exchange.html#default">⇄ Create Exchange</div>
+                  <div class="item disabled" style="color:var(--fg-disabled);cursor:not-allowed" title="비활성: 출고된 품목이 없음(진행 중 클레임이 있으면 'Manage Claim'). 활성 시 → order-create-claim.html#default">ⓘ Create Claim</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ItemBreakdown / Item(:442-560) -->
+            <div>
+              <div class="item">
+                <div class="row" style="align-items:flex-start;gap:16px"><span class="thumb"></span><div><div class="t">Medusa T-Shirt</div><div class="small">SHIRT-L-BLACK</div><div class="small">L · Black</div></div></div>
+                <div class="r3">
+                  <div class="r small">$25.00</div>
+                  <div class="row small" style="gap:16px"><span>2x</span>
+                    <span class="sb status green" data-scene="default menu-general cancel-prompt menu-summary menu-unfulfilled menu-payment menu-customer json-drawer toast-success toast-error edit-pending edit-requested transfer-requested transfer-cancel-prompt awaiting-payment mark-paid-prompt capture-prompt awaiting-authorization refund-due">Allocated</span>
+                    <span class="sb status orange" data-scene="canceled">Not allocated</span>
+                  </div>
+                  <div class="r small">$50.00</div>
+                </div>
+              </div>
+              <div class="item" style="border-top:1px dashed var(--border-base)">
+                <div class="row" style="align-items:flex-start;gap:16px"><span class="thumb"></span><div><div class="t">Medusa Sweatpants</div><div class="small">SWEAT-M-GRAY</div><div class="small">M · Gray</div></div></div>
+                <div class="r3">
+                  <div class="r small">$40.00</div>
+                  <div class="row small" style="gap:16px"><span>1x</span>
+                    <span class="sb status orange" data-scene="default menu-general cancel-prompt menu-summary menu-unfulfilled menu-payment menu-customer json-drawer toast-success toast-error edit-pending edit-requested transfer-requested transfer-cancel-prompt awaiting-payment mark-paid-prompt capture-prompt awaiting-authorization refund-due canceled">Not allocated</span>
+                  </div>
+                  <div class="r small">$40.00</div>
+                </div>
+              </div>
+              <!-- ReturnBreakdown(:930-1010) 요청된 반품 줄 -->
+              <div class="sub small" style="border-top:2px dotted var(--border-strong)" data-scene="return-requested return-cancel-prompt">
+                <div class="row"><span class="muted">↳</span><span>1x items return requested</span></div>
+                <span class="muted">less than a minute ago <span title="반품 정보 팝오버">ⓘ</span></span>
+              </div>
+            </div>
+
+            <!-- CostBreakdown(:595-760) -->
+            <div class="costs">
+              <div class="cost"><span>Item Subtotal</span><span></span><span>$90.00</span></div>
+              <div class="cost"><span>Shipping Subtotal ▸</span><span></span><span title="펼치면 Standard Shipping $10.00">$10.00</span></div>
+              <div class="between"><span>Tax Total</span><span>$0.00</span></div>
+              <div class="between"><span>Order Total</span><span style="font-weight:600">$100.00</span></div>
+            </div>
+            <!-- DiscountAndTotalBreakdown(:762-900) -->
+            <div class="costs">
+              <div class="cost"><span>Discount Total</span><span></span><span>$0.00</span></div>
+              <div class="between"><span>Total After Discount</span><span style="font-weight:600">$100.00</span></div>
+            </div>
+            <!-- Total(:1280-1334) -->
+            <div class="costs">
+              <div class="between"><span>Paid Total</span>
+                <span data-not-scene="awaiting-payment mark-paid-prompt capture-prompt awaiting-authorization">$ 100.00 USD</span>
+                <span data-scene="awaiting-payment mark-paid-prompt capture-prompt awaiting-authorization">$ 0.00 USD</span></div>
+              <div class="between"><span style="font-weight:500">Outstanding amount</span>
+                <span style="font-weight:600" data-not-scene="awaiting-payment mark-paid-prompt capture-prompt awaiting-authorization refund-due">$ 0.00 USD</span>
+                <span style="font-weight:600" data-scene="awaiting-payment mark-paid-prompt capture-prompt awaiting-authorization">$ 100.00 USD</span>
+                <span style="font-weight:600" data-scene="refund-due">$ -20.00 USD</span></div>
+            </div>
+            <!-- 하단 액션바(:250-320): Receive items / Allocate items / Copy payment link / Mark as paid / Refund -->
+            <div class="foot" data-scene="default menu-general cancel-prompt menu-summary menu-unfulfilled menu-payment menu-customer json-drawer toast-success toast-error edit-pending edit-requested transfer-requested transfer-cancel-prompt awaiting-payment mark-paid-prompt capture-prompt awaiting-authorization refund-due canceled return-requested return-cancel-prompt">
+              <a class="btn sm" href="order-receive-return.html#default" data-scene="return-requested return-cancel-prompt" title="요청된 반품이 2개 이상이면 메뉴로 'Receive {{returnType}} #id items' 선택">Receive items</a>
+              <a class="btn sm" href="order-allocate-items.html#default" data-not-scene="return-requested return-cancel-prompt">Allocate items</a>
+              <button class="btn sm" type="button" data-scene="awaiting-payment mark-paid-prompt capture-prompt" title="클릭 시 {storefront}/payment-collection/:id?order_id= 복사, 툴팁 Copied">⧉ Copy payment link for $ 20.00 USD</button>
+              <button class="btn sm" type="button" data-scene="awaiting-payment mark-paid-prompt capture-prompt" data-goto="mark-paid-prompt">Mark as paid</button>
+              <a class="btn sm" href="order-create-refund.html#default" data-scene="refund-due">Refund $ 20.00 USD</a>
+            </div>
+          </div>
+
+          <!-- order-payment-section.tsx -->
+          <div class="container dash">
+            <div class="hd">
+              <h2 class="h2">Payments</h2>
+              <span class="sb status green" data-not-scene="awaiting-payment mark-paid-prompt capture-prompt awaiting-authorization">Captured</span>
+              <span class="sb status red" data-scene="awaiting-payment mark-paid-prompt capture-prompt">Partially authorized</span>
+              <span class="sb status orange" data-scene="awaiting-authorization">Awaiting</span>
+            </div>
+            <div class="dash">
+              <!-- PendingAuthorizationBanner(:430-470) -->
+              <div class="sub" data-scene="awaiting-authorization">
+                <div class="row small"><span class="muted">↳</span><span>Payment is awaiting authorization from the payment provider.</span></div>
+                <button class="btn sm" type="button" title="결과 토스트: 승인됨 / 'still pending' info">Check status</button>
+              </div>
+              <!-- Payment(:105-290) -->
+              <div class="pay" data-not-scene="awaiting-authorization">
+                <div><div style="font-weight:500" title="pay_01JC9ZQ8M4X2N7P5R3T6WKBYHD">#6WKBYHD</div><div class="small">10 Nov, 2026, 14:32:08</div></div>
+                <div class="prov small">System (DEFAULT)</div>
+                <div class="r"><span class="sb status green" data-not-scene="awaiting-payment mark-paid-prompt capture-prompt">Captured</span><span class="sb status orange" data-scene="awaiting-payment mark-paid-prompt capture-prompt">Pending</span></div>
+                <div class="r small"><span data-not-scene="awaiting-payment mark-paid-prompt capture-prompt">$100.00</span><span data-scene="awaiting-payment mark-paid-prompt capture-prompt">$80.00</span></div>
+                <div class="rel">
+                  <button class="btn ghost icon" type="button" data-goto="menu-payment" title="Actions">⋯</button>
+                  <div class="menu" data-scene="menu-payment" style="min-width:160px">
+                    <a href="order-create-refund.html#from-payment" title="미캡처·취소·전액 환불된 결제면 비활성">⊗ Refund</a>
+                  </div>
+                </div>
+              </div>
+              <div class="sub" data-scene="awaiting-payment mark-paid-prompt capture-prompt">
+                <div class="row small"><span class="muted">↳</span><span>Payment <b style="font-weight:500">#6WKBYHD</b> is ready to be captured.</span></div>
+                <button class="btn sm" type="button" data-goto="capture-prompt">Capture payment</button>
+              </div>
+            </div>
+            <div class="stack" style="padding:16px 24px;gap:16px;font-weight:500">
+              <div class="between"><span>Total paid by customer</span><span data-not-scene="awaiting-payment mark-paid-prompt capture-prompt awaiting-authorization">$ 100.00 USD</span><span data-scene="awaiting-payment mark-paid-prompt capture-prompt awaiting-authorization">$ 0.00 USD</span></div>
+              <div class="between" data-scene="awaiting-payment mark-paid-prompt capture-prompt awaiting-authorization"><span>Total pending</span><span>$ 100.00 USD</span></div>
+            </div>
+          </div>
+
+          <!-- order-fulfillment-section.tsx: UnfulfilledItemDisplay(:150-205) — 취소 주문이면 렌더 안 함 -->
+          <div class="container solid" data-scene="default menu-general cancel-prompt menu-summary menu-unfulfilled menu-payment menu-customer json-drawer toast-success toast-error edit-pending edit-requested transfer-requested transfer-cancel-prompt awaiting-payment mark-paid-prompt capture-prompt awaiting-authorization refund-due">
+            <div class="hd">
+              <h2 class="h2">Unfulfilled Items</h2>
+              <div class="row" style="gap:16px">
+                <span class="sb status red">Requires shipping</span>
+                <span class="sb status red">Awaiting fulfillment</span>
+                <div class="rel">
+                  <button class="btn ghost icon" type="button" data-goto="menu-unfulfilled" title="Actions">⋯</button>
+                  <div class="menu" data-scene="menu-unfulfilled" style="min-width:180px">
+                    <a href="order-create-fulfillment.html#default">▦ Fulfill items</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="solid">
+              <div class="item" style="align-items:start">
+                <div class="row" style="align-items:flex-start;gap:16px"><span class="thumb"></span><div><div class="t" style="font-weight:500">Medusa T-Shirt</div><div class="small">SHIRT-L-BLACK <span class="copy">⧉</span></div><div class="small">L · Black</div></div></div>
+                <div class="r3"><div class="r small">$25.00</div><div class="r">2x</div><div class="r small">$50.00</div></div>
+              </div>
+              <div class="item" style="align-items:start">
+                <div class="row" style="align-items:flex-start;gap:16px"><span class="thumb"></span><div><div class="t" style="font-weight:500">Medusa Sweatpants</div><div class="small">SWEAT-M-GRAY <span class="copy">⧉</span></div><div class="small">M · Gray</div></div></div>
+                <div class="r3"><div class="r small">$40.00</div><div class="r">1x</div><div class="r small">$40.00</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fulfillment(:207-555) -->
+          <div class="container solid" data-scene="fulfilled menu-fulfillment cancel-fulfillment-prompt deliver-prompt shipped return-active claim-active exchange-active return-requested return-cancel-prompt">
+            <div class="hd">
+              <h2 class="h2">Fulfillment #1</h2>
+              <div class="row" style="gap:16px">
+                <span class="sb status blue" data-scene="fulfilled menu-fulfillment cancel-fulfillment-prompt deliver-prompt" title="12 Nov, 2026, 10:05:41">Awaiting shipping</span>
+                <span class="sb status green" data-scene="shipped return-active claim-active exchange-active return-requested return-cancel-prompt" title="13 Nov, 2026, 09:12:30">Shipped</span>
+                <div class="rel">
+                  <button class="btn ghost icon" type="button" data-goto="menu-fulfillment" title="Actions">⋯</button>
+                  <div class="menu" data-scene="menu-fulfillment" style="min-width:160px">
+                    <a href="#cancel-fulfillment-prompt" data-goto="cancel-fulfillment-prompt" title="출고/배송완료/취소된 이행은 비활성(출고 후 누르면 경고 토스트 'Cannot cancel an already shipped fulfillment')">⊗ Cancel</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="kv2"><span>Items</span><div><div>2x Medusa T-Shirt</div><div>1x Medusa Sweatpants</div></div></div>
+            <div class="kv2" style="align-items:center"><span>Shipping from</span><a title="/settings/locations/:id (범위 밖)">European Warehouse</a></div>
+            <div class="kv2" style="align-items:center"><span>Provider</span><span>Manual</span></div>
+            <div class="kv2"><span>Tracking</span>
+              <span data-scene="fulfilled menu-fulfillment cancel-fulfillment-prompt deliver-prompt">-</span>
+              <span data-scene="shipped return-active claim-active exchange-active return-requested return-cancel-prompt"><a title="tracking_url 새 창(외부)">1Z999AA10123456784</a></span>
+            </div>
+            <!-- 버튼 순서: Mark as delivered 먼저, Mark as shipped 뒤 (:470-492) -->
+            <div class="foot">
+              <button class="btn" type="button" data-goto="deliver-prompt">Mark as delivered</button>
+              <a class="btn" href="order-create-shipment.html#default" data-scene="fulfilled menu-fulfillment cancel-fulfillment-prompt deliver-prompt">Mark as shipped</a>
+            </div>
+          </div>
+
+          <!-- metadata-section.tsx -->
+          <div class="container hd">
+            <div class="row" style="gap:12px"><h2 class="h2">Metadata</h2><span class="badge pill">0 keys</span></div>
+            <a class="btn ghost icon" href="order-metadata.html#default" title="metadata/edit">↗</a>
+          </div>
+          <!-- json-view-section.tsx -->
+          <div class="container hd">
+            <div class="row" style="gap:16px"><h2 class="h2">JSON</h2><span class="badge pill">42 keys</span></div>
+            <button class="btn ghost icon" type="button" data-goto="json-drawer" title="Open">↗</button>
+          </div>
+        </div>
+
+        <div class="col-side">
+          <!-- order-customer-section.tsx + customer-info.tsx -->
+          <div class="container solid">
+            <div class="hd">
+              <h2 class="h2">Customer</h2>
+              <div class="rel">
+                <button class="btn ghost icon" type="button" data-goto="menu-customer" title="Actions">⋯</button>
+                <div class="menu" data-scene="menu-customer">
+                  <a href="order-request-transfer.html#default">⟳ Transfer ownership</a>
+                  <div class="sep"></div>
+                  <a href="order-edit-shipping-address.html#default">▣ Shipping address</a>
+                  <a href="order-edit-billing-address.html#default">$ Billing address</a>
+                  <div class="sep"></div>
+                  <a href="order-edit-email.html#default">✉ Email</a>
+                </div>
+              </div>
+            </div>
+            <div class="kv2" style="align-items:center"><span>ID</span><a class="row subtle" title="/customers/:id 범위 밖" style="cursor:pointer"><span class="avatar" style="width:20px;height:20px;border-radius:999px;background:var(--bg-disabled);color:var(--fg-subtle)">J</span>Jane Doe</a></div>
+            <div class="kv2"><span>Contact</span><div class="stack"><div class="between"><span>jane@example.com</span><span class="copy">⧉</span></div><div class="between"><span>+1 555 0100</span><span class="copy">⧉</span></div></div></div>
+            <div class="kv2"><span>Shipping address</span><div class="between" style="align-items:flex-start"><span>Jane Doe<br>12 Market St<br>Apt 4<br>San Francisco CA 94103<br>United States</span><span class="copy">⧉</span></div></div>
+            <div class="kv2" style="align-items:center"><span>Billing address</span><span class="muted">Same as shipping address</span></div>
+          </div>
+
+          <!-- order-activity-section.tsx + order-timeline.tsx -->
+          <div class="container" style="padding:16px 24px">
+            <h2 class="h2" style="margin-bottom:32px">Activity</h2>
+            <div class="stack" style="gap:2px">
+
+              <!-- 최근 항목들(최신순). 3개 이하면 전부, 초과면 최근 2개 + 접힘 + Order placed -->
+              <div class="tl" data-scene="return-requested return-cancel-prompt">
+                <div class="rail"><span class="dot"></span><span class="line"></span></div>
+                <div class="bodyx"><div class="between"><span class="ttl" title="호버 팝오버: To return 1x M / Gray · Medusa Sweatpants">Return #ABCD123 requested</span><span class="small subtle" title="Nov 14, 2026 3:10 PM">less than a minute ago</span></div>
+                  <div class="row small subtle" style="gap:4px"><span>1 item returned</span><span>⋅</span><button class="linkbtn small" type="button" data-goto="return-cancel-prompt">Cancel</button></div></div>
+              </div>
+              <div class="tl" data-scene="edit-requested">
+                <div class="rail"><span class="dot"></span><span class="line"></span></div>
+                <div class="bodyx"><div class="between"><span class="ttl">Order edit #E1A2B3C requested</span><span class="small subtle">less than a minute ago</span></div></div>
+              </div>
+              <div class="tl" data-scene="transfer-requested transfer-cancel-prompt">
+                <div class="rail"><span class="dot"></span><span class="line"></span></div>
+                <div class="bodyx"><div class="between"><span class="ttl">Order transfer #T9K2M4P requested</span><span class="small subtle">less than a minute ago</span></div>
+                  <div class="small subtle">From: jane@example.com</div><div class="small subtle">To: John Smith</div>
+                  <button class="linkbtn small" type="button" data-goto="transfer-cancel-prompt">Cancel</button></div>
+              </div>
+              <div class="tl" data-scene="canceled">
+                <div class="rail"><span class="dot"></span><span class="line"></span></div>
+                <div class="bodyx"><div class="between"><span class="ttl">Order canceled</span><span class="small subtle">less than a minute ago</span></div></div>
+              </div>
+              <div class="tl" data-scene="shipped return-active claim-active exchange-active return-requested return-cancel-prompt">
+                <div class="rail"><span class="dot"></span><span class="line"></span></div>
+                <div class="bodyx"><div class="between"><span class="ttl">Items shipped</span><span class="small subtle" title="Nov 13, 2026 9:12 AM">1 day ago</span></div><div class="small subtle">3 items</div></div>
+              </div>
+              <div class="tl" data-scene="fulfilled menu-fulfillment cancel-fulfillment-prompt deliver-prompt shipped return-active claim-active exchange-active">
+                <div class="rail"><span class="dot"></span><span class="line"></span></div>
+                <div class="bodyx"><div class="between"><span class="ttl">Items fulfilled</span><span class="small subtle" title="Nov 12, 2026 10:05 AM">2 days ago</span></div><div class="small subtle">3 items</div></div>
+              </div>
+              <div class="tl" data-scene="default menu-general cancel-prompt menu-summary menu-unfulfilled menu-payment menu-customer json-drawer toast-success toast-error edit-pending edit-requested transfer-requested transfer-cancel-prompt refund-due canceled fulfilled menu-fulfillment cancel-fulfillment-prompt deliver-prompt">
+                <div class="rail"><span class="dot"></span><span class="line"></span></div>
+                <div class="bodyx"><div class="between"><span class="ttl">Payment captured</span><span class="small subtle" title="Nov 10, 2026 2:32 PM">4 days ago</span></div><div class="small subtle">$ 100.00 USD</div></div>
+              </div>
+
+              <!-- OrderActivityCollapsible(:700-750): 접힌 상태 -->
+              <div class="tl" data-scene="edit-requested transfer-requested transfer-cancel-prompt canceled fulfilled menu-fulfillment cancel-fulfillment-prompt deliver-prompt shipped return-active claim-active exchange-active return-requested return-cancel-prompt">
+                <div class="rail"><span class="line dotted"></span></div>
+                <div class="bodyx"><button class="linkbtn small muted" type="button" title="펼치면 숨긴 활동 표시(펼친 장면 없음)" style="color:var(--fg-muted)">
+                  <span data-scene="edit-requested transfer-requested transfer-cancel-prompt canceled fulfilled menu-fulfillment cancel-fulfillment-prompt deliver-prompt">Show 1 more activity</span>
+                  <span data-scene="shipped return-active claim-active exchange-active">Show 2 more activities</span>
+                  <span data-scene="return-requested return-cancel-prompt">Show 3 more activities</span>
+                </button></div>
+              </div>
+
+              <div class="tl" data-scene="default menu-general cancel-prompt menu-summary menu-unfulfilled menu-payment menu-customer json-drawer toast-success toast-error edit-pending refund-due awaiting-payment mark-paid-prompt capture-prompt">
+                <div class="rail"><span class="dot"></span><span class="line"></span></div>
+                <div class="bodyx"><div class="between"><span class="ttl">Awaiting payment</span><span class="small subtle" title="Nov 10, 2026 2:32 PM">4 days ago</span></div>
+                  <div class="small subtle"><span data-not-scene="awaiting-payment mark-paid-prompt capture-prompt">$ 100.00 USD</span><span data-scene="awaiting-payment mark-paid-prompt capture-prompt">$ 80.00 USD</span></div></div>
+              </div>
+              <div class="tl last">
+                <div class="rail"><span class="dot"></span></div>
+                <div class="bodyx"><div class="between"><span class="ttl">Order placed</span><span class="small subtle" title="Nov 10, 2026 2:32 PM">4 days ago</span></div><div class="small subtle">$ 100.00 USD</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 메뉴 바깥 클릭 시 닫힘 -->
+<div class="catcher" data-scene="menu-general menu-summary menu-unfulfilled menu-payment menu-customer" data-goto="default"></div>
+<div class="catcher" data-scene="menu-fulfillment" data-goto="fulfilled"></div>
+
+<!-- 프롬프트들 -->
+<div class="overlay" style="z-index:75" data-scene="cancel-prompt cancel-fulfillment-prompt deliver-prompt mark-paid-prompt capture-prompt return-cancel-prompt transfer-cancel-prompt"></div>
+
+<!-- order-general-section.tsx:35-58 usePrompt 기본 variant(danger) -->
+<div class="prompt" data-scene="cancel-prompt">
+  <div class="p-body"><div class="h2">Are you sure?</div><p class="subtle">You are about to cancel the order #1042. This action cannot be undone.</p></div>
+  <div class="p-foot"><button class="btn" type="button" data-goto="default">Cancel</button><button class="btn danger" type="button" data-goto="canceled">Continue</button></div>
+</div>
+
+<!-- order-fulfillment-section.tsx:300-322 -->
+<div class="prompt" data-scene="cancel-fulfillment-prompt">
+  <div class="p-body"><div class="h2">Are you sure?</div><p class="subtle">You are about to cancel a fulfillment. This action cannot be undone.</p></div>
+  <div class="p-foot"><button class="btn" type="button" data-goto="fulfilled">Cancel</button><button class="btn danger" type="button" data-goto="default" title="토스트: Fulfillment successfully canceled → 미이행 카드 복귀(Fulfillment #1 Canceled 카드는 미재현)">Continue</button></div>
+</div>
+
+<!-- order-fulfillment-section.tsx:510-548 variant confirmation, Send notification 기본 = !order.no_notification -->
+<div class="prompt" data-scene="deliver-prompt">
+  <div class="p-body" style="padding-bottom:0"><div class="h2">Are you sure?</div><p class="subtle">You are about to mark fulfillment as delivered. This action cannot be undone.</p></div>
+  <div class="switch-row" style="margin-top:24px"><label class="small">Send notification</label><span class="switch on"></span></div>
+  <div class="p-foot" style="border-top:0"><button class="btn" type="button" data-goto="fulfilled">Cancel</button><button class="btn primary" type="button" data-goto="fulfilled" title="토스트: Fulfillment marked as delivered successfully(Delivered 상태 화면은 미재현)">Continue</button></div>
+</div>
+
+<!-- order-summary-section.tsx:168-200 variant confirmation -->
+<div class="prompt" data-scene="mark-paid-prompt">
+  <div class="p-body"><div class="h2">Mark as paid</div><p class="subtle">Payment of $20.00 will be marked as paid.</p></div>
+  <div class="p-foot"><button class="btn" type="button" data-goto="awaiting-payment">Cancel</button><button class="btn primary" type="button" data-goto="awaiting-payment" title="토스트: Payment of $20.00 successfully marked as paid">Confirm</button></div>
+</div>
+
+<!-- order-payment-section.tsx:120-150 variant confirmation -->
+<div class="prompt" data-scene="capture-prompt">
+  <div class="p-body"><div class="h2">Capture payment</div><p class="subtle">Payment of $80.00 will be captured.</p></div>
+  <div class="p-foot"><button class="btn" type="button" data-goto="awaiting-payment">Cancel</button><button class="btn primary" type="button" data-goto="awaiting-payment" title="토스트: Payment of $80.00 was successfully captured(문구 미확인)">Confirm</button></div>
+</div>
+
+<!-- order-timeline.tsx ReturnBody onCancel: usePrompt 기본 variant -->
+<div class="prompt" data-scene="return-cancel-prompt">
+  <div class="p-body"><div class="h2">Cancel Return</div><p class="subtle">Are you sure you want to cancel the return request?</p></div>
+  <div class="p-foot"><button class="btn" type="button" data-goto="return-requested">Cancel</button><button class="btn danger" type="button" data-goto="shipped" title="성공 토스트 없음(실패 시 오류 토스트)">Confirm</button></div>
+</div>
+
+<!-- order-timeline.tsx TransferOrderRequestBody handleDelete -->
+<div class="prompt" data-scene="transfer-cancel-prompt">
+  <div class="p-body"><div class="h2">Are you sure?</div><p class="subtle">This action cannot be undone</p></div>
+  <div class="p-foot"><button class="btn" type="button" data-goto="transfer-requested">Cancel</button><button class="btn danger" type="button" data-goto="default" title="성공 토스트 없음">Delete</button></div>
+</div>
+
+<!-- JSON 드로어(제자리, json-view-section.tsx) -->
+<div class="overlay" data-scene="json-drawer" data-goto="default"></div>
+<div class="drawer dark" role="dialog" aria-label="JSON" data-scene="json-drawer">
+  <header>
+    <div class="h2" style="color:#fafafa">JSON <span style="color:#a1a1aa">· 42 keys</span></div>
+    <div class="row"><span class="kbd" style="background:#3f3f46;color:#d4d4d8;box-shadow:none">esc</span><a class="btn ghost icon" href="#default" data-goto="default" title="Close" style="color:#d4d4d8">✕</a></div>
+  </header>
+  <div class="body" style="padding:0 5px 5px">
+<pre>{
+  <span style="color:#fafafa">"id"</span>: <span style="color:#10b981">"order_01JC9ZQ7..."</span>,
+  <span style="color:#fafafa">"status"</span>: <span style="color:#10b981">"pending"</span>,
+  <span style="color:#fafafa">"display_id"</span>: <span style="color:#f97316">1042</span>,
+  <span style="color:#fafafa">"email"</span>: <span style="color:#10b981">"jane@example.com"</span>,
+  <span style="color:#fafafa">"currency_code"</span>: <span style="color:#10b981">"usd"</span>,
+  <span style="color:#fafafa">"canceled_at"</span>: <span style="color:#f43f5e">null</span>,
+  <span style="color:#fafafa">"metadata"</span>: <span style="color:#f43f5e">null</span>,
+  <span style="color:#fafafa">"total"</span>: <span style="color:#f97316">100</span>,
+  <span style="color:#fafafa">"items"</span>: [<span style="color:#a1a1aa">…</span>] <span style="color:#a1a1aa">2 items</span>,
+  <span style="color:#fafafa">"shipping_address"</span>: {<span style="color:#a1a1aa">…</span>} <span style="color:#a1a1aa">16 items</span>,
+  <span style="color:#fafafa">"payment_collections"</span>: [<span style="color:#a1a1aa">…</span>] <span style="color:#a1a1aa">1 item</span>,
+  <span style="color:#a1a1aa">… (collapsed=1, 나머지 키 생략)</span>
+}</pre>
+  </div>
+</div>
+
+<!-- 토스트 -->
+<div class="toast" data-scene="canceled"><span class="ti"></span><div>Order canceled successfully</div></div>
+<div class="toast" data-scene="toast-success" title="작업별 토스트 문구는 navigation.md 참고"><span class="ti"></span><div>Fulfillment created successfully</div></div>
+<div class="toast error" data-scene="toast-error"><span class="ti"></span><div>There is an active order change in progress on this order. Please finish or discard the change first.</div></div>
+
+<script src="assets/scenes.js"></script>
+</body>
+</html>
